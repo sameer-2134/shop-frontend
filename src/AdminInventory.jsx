@@ -5,18 +5,18 @@ import { Edit, Trash2, Search, RefreshCcw, Package, X, Save, AlertTriangle, Box 
 import './AdminInventory.css';
 
 const AdminInventory = () => {
-    // Initializing with empty array to prevent .filter() errors
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
 
+    const baseURL = import.meta.env.VITE_API_URL;
+
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/products/all');
-            // Backend agar array nahi bhej raha toh fallback empty array
+            const res = await axios.get(`${baseURL}/api/products/all`);
             const data = Array.isArray(res.data) ? res.data : (res.data.products || []);
             setProducts(data);
         } catch (err) {
@@ -34,7 +34,7 @@ const AdminInventory = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this product?")) {
             try {
-                await axios.delete(`http://localhost:5000/api/products/delete/${id}`);
+                await axios.delete(`${baseURL}/api/products/delete/${id}`);
                 toast.success("Product removed");
                 setProducts(prev => prev.filter(p => p._id !== id));
             } catch (err) {
@@ -50,7 +50,7 @@ const AdminInventory = () => {
 
     const handleUpdate = async () => {
         try {
-            const res = await axios.patch(`http://localhost:5000/api/products/update/${editingProduct._id}`, editingProduct);
+            const res = await axios.patch(`${baseURL}/api/products/update/${editingProduct._id}`, editingProduct);
             if (res.data.success || res.status === 200) {
                 toast.success("Product updated");
                 setProducts(prev => prev.map(p => p._id === editingProduct._id ? editingProduct : p));
@@ -61,13 +61,11 @@ const AdminInventory = () => {
         }
     };
 
-    // Safe Filter Logic
     const filteredProducts = (products || []).filter(p => 
         p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
         p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Stats Logic
     const lowStockItems = products.filter(p => p.stock > 0 && p.stock < 5);
     const outOfStockItems = products.filter(p => p.stock === 0);
 
@@ -94,7 +92,6 @@ const AdminInventory = () => {
                 </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="inventory-stats-grid">
                 <div className="stat-card">
                     <div className="stat-icon"><Box size={20} /></div>
@@ -195,7 +192,6 @@ const AdminInventory = () => {
                 )}
             </div>
 
-            {/* Edit Modal */}
             {isEditModalOpen && editingProduct && (
                 <div className="modal-overlay">
                     <div className="edit-modal">

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { Mail, Lock, Key, ArrowLeft } from 'lucide-react'; // Icons ke liye (npm install lucide-react)
+import { toast } from 'react-hot-toast'; // Consistent with other files
+import { Mail, Lock, Key, ArrowLeft } from 'lucide-react';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -12,11 +12,14 @@ const ForgotPassword = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    // ✅ Dynamic API URL
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
+
     const handleSendOtp = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('http://localhost:5000/forgot-password', { email });
+            const res = await axios.post(`${API_BASE_URL}/forgot-password`, { email });
             if (res.data.success) {
                 toast.success("OTP sent to your inbox! 📧");
                 setStep(2);
@@ -24,40 +27,42 @@ const ForgotPassword = () => {
                 toast.error(res.data.message);
             }
         } catch (error) {
-            toast.error("User not found or Server error");
+            toast.error(error.response?.data?.message || "User not found or Server error");
         } finally {
             setLoading(false);
         }
     };
-const handleResetPassword = async (e) => {
-    e.preventDefault();
-    try {
-        const response = await axios.post('http://localhost:5000/reset-password', { 
-            email, 
-            otp, 
-            newPassword 
-        });
 
-        if (response.data.success) {
-            // ✅ YAHAN DALNA HAI YE LOGIC
-            // Isse user password reset karte hi auto-login ho jayega
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const response = await axios.post(`${API_BASE_URL}/reset-password`, { 
+                email, 
+                otp, 
+                newPassword 
+            });
 
-            toast.success("Password Reset Successful! Welcome Back. 🚀");
+            if (response.data.success) {
+                // ✅ Auto-Login Logic
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
 
-            // Seedha Home page par bhej do
-            setTimeout(() => {
-                window.location.href = "/"; 
-            }, 1500);
-        } else {
-            toast.error(response.data.message);
+                toast.success("Password Reset Successful! Welcome Back. 🚀");
+
+                // Seedha Home page par bhej do
+                setTimeout(() => {
+                    window.location.href = "/"; 
+                }, 1500);
+            } else {
+                toast.error(response.data.message);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Error resetting password");
+        } finally {
+            setLoading(false);
         }
-    } catch (error) {
-        toast.error("Error resetting password");
-    }
-};
-    
+    };
 
     return (
         <div style={styles.container}>
@@ -125,7 +130,7 @@ const styles = {
     },
     backBtn: {
         position: 'absolute', top: '20px', left: '20px', background: 'none', border: 'none', 
-        cursor: 'pointer', color: '#667eea'
+        cursor: 'pointer', color: '#667eea', display: 'flex', alignItems: 'center'
     },
     title: { fontSize: '24px', fontWeight: '700', color: '#333', marginBottom: '10px' },
     subtitle: { fontSize: '14px', color: '#777', marginBottom: '30px', lineHeight: '1.5' },

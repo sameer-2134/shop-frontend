@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCart } from './CartContext';
-import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiShield, FiTruck, FiArrowLeft } from 'react-icons/fi';
+import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiShield, FiTruck } from 'react-icons/fi';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion'; 
 import './Cart.css';
@@ -8,11 +8,16 @@ import './Cart.css';
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity } = useCart();
     const navigate = useNavigate();
-    const API_BASE_URL = "http://localhost:5000/";
+
+    // ✅ Dynamic API URL for production
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
 
     const getFullUrl = (img) => {
         if (!img) return "https://placehold.co/100x150?text=No+Image";
-        return img.startsWith('http') ? img : `${API_BASE_URL}${img.replace(/\\/g, '/')}`;
+        // Agar image path 'http' se shuru ho raha hai toh wo Cloudinary URL hai
+        if (img.startsWith('http')) return img;
+        // Warna backend path hai
+        return `${API_BASE_URL}/${img.replace(/\\/g, '/')}`;
     };
 
     const totalMRP = cart.reduce((total, item) => total + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0);
@@ -82,14 +87,15 @@ const Cart = () => {
                                         
                                         <div className="qty-price-flex">
                                             <div className="modern-qty-box">
-                                                <button onClick={() => updateQuantity(item._id, item.quantity - 1)} disabled={item.quantity <= 1}><FiMinus /></button>
-                                                <span>{item.quantity}</span>
-                                                <button onClick={() => updateQuantity(item._id, item.quantity + 1)}><FiPlus /></button>
+                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1)} disabled={item.quantity <= 1}><FiMinus /></button>
+                                                <span>{item.quantity || 1}</span>
+                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1)}><FiPlus /></button>
                                             </div>
                                             <div className="price-stack">
-                                                <span className="current-p">₹{(item.price * item.quantity).toLocaleString()}</span>
+                                                <span className="current-p">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}</span>
                                             </div>
                                         </div>
+                                        {item.size && <div className="cart-item-meta">Size: <strong>{item.size}</strong></div>}
                                     </div>
                                 </div>
                             </motion.div>

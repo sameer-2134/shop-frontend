@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { 
     Package, IndianRupee, Image as ImageIcon, 
     Star, PlusCircle, FileStack, 
-    Link as LinkIcon, AlignLeft, X, Palette
+    X, Palette, AlignLeft 
 } from 'lucide-react';
 import './AdminProduct.css';
 
@@ -14,6 +14,8 @@ const AdminProduct = () => {
     const [previews, setPreviews] = useState([]);
     const [bulkText, setBulkText] = useState("");
     const [colorInput, setColorInput] = useState("");
+
+    const baseURL = import.meta.env.VITE_API_URL;
 
     const taxonomy = {
         MEN: {
@@ -49,22 +51,14 @@ const AdminProduct = () => {
         images: [], sizes: [], colors: [], imageUrl: '' 
     });
 
-    // --- UPDATED LOGIC: JEANS KE LIYE NUMBERS ---
     const getAvailableSizes = () => {
         const cat = (formData.category || "").toLowerCase();
         const subCat = (formData.subCategory || "").toLowerCase();
 
         if (cat === 'footwear') return ['6', '7', '8', '9', '10', '11'];
-        
-        // Jeans specific size check
-        if (subCat === 'jeans' || subCat === 'trousers') {
-            return ['28', '30', '32', '34', '36', '38'];
-        }
-
+        if (subCat === 'jeans' || subCat === 'trousers') return ['28', '30', '32', '34', '36', '38'];
         if (formData.section === 'KIDS' && cat === 'clothing') return ['2-3Y', '3-4Y', '5-6Y', '7-8Y', '9-10Y'];
-        
         if (cat === 'clothing') return ['S', 'M', 'L', 'XL', 'XXL'];
-        
         return [];
     };
 
@@ -75,7 +69,6 @@ const AdminProduct = () => {
         } else if (name === 'category') {
             setFormData({ ...formData, category: value, subCategory: '', sizes: [] });
         } else if (name === 'subCategory') {
-            // Sub-category badalte hi sizes reset taaki Jeans/Shirts ka difference maintain ho
             setFormData({ ...formData, subCategory: value, sizes: [] });
         } else if (name === 'imageUrl') {
             const urls = value.split(',').map(url => url.trim()).filter(url => url !== "");
@@ -129,8 +122,6 @@ const AdminProduct = () => {
         try {
             if (uploadMode === 'single') {
                 const data = new FormData();
-                
-                // Agar array khali hai aur category clothing/footwear nahi hai, tabhi Free size daalein
                 const finalSizes = formData.sizes.length > 0 ? formData.sizes : (getAvailableSizes().length === 0 ? ["Free Size"] : []);
 
                 if (finalSizes.length === 0 && getAvailableSizes().length > 0) {
@@ -153,13 +144,12 @@ const AdminProduct = () => {
                     }
                 });
                 
-                const res = await axios.post('http://localhost:5000/api/products/add', data);
+                const res = await axios.post(`${baseURL}/api/products/add`, data);
                 if (res.data.success) {
                     toast.success("Product Authorized! 🚀");
                     resetForm();
                 }
             } else {
-                // BULK MODE logic remains same but uses finalSizes logic if needed
                 let productsArray = [];
                 const trimmedText = bulkText.trim();
                 if (trimmedText.startsWith('[') || trimmedText.startsWith('{')) {
@@ -168,12 +158,11 @@ const AdminProduct = () => {
                     const rows = trimmedText.split('\n');
                     productsArray = rows.map(row => {
                         const [brand, name, price, originalPrice, stock, section, category, subCategory, imageUrl, description, sizesStr] = row.split(',').map(s => s?.trim());
-                        // Bulk mein sizes comma se separate karke de sakte hain: "30,32,34"
                         const bulkSizes = sizesStr ? sizesStr.split('|') : ["Free Size"];
                         return { brand, name, price, originalPrice, stock, section, category, subCategory, images: [imageUrl], description, sizes: bulkSizes };
                     });
                 }
-                const res = await axios.post('http://localhost:5000/api/products/bulk-add', productsArray);
+                const res = await axios.post(`${baseURL}/api/products/bulk-add`, productsArray);
                 if (res.data.success) {
                     toast.success("Bulk Import Success!");
                     setBulkText("");
@@ -195,11 +184,8 @@ const AdminProduct = () => {
         setPreviews([]);
     };
 
-    // ... (Tera return statement yahan se niche bilkul same rahega)
     return (
         <div className="ap-page-wrapper">
-             {/* [Bhai, baaki pura UI code jo tune upar diya tha, wahi same yahan paste kar dena] */}
-             {/* Bas upar wale logic functions update hue hain */}
              <div className="admin-header">
                 <h2>Owner Dashboard</h2>
                 <p>Manage ShopLane Inventory</p>
@@ -291,7 +277,6 @@ const AdminProduct = () => {
                                 </div>
                             </div>
 
-                            {/* DYNAMIC SIZE BUTTONS */}
                             {getAvailableSizes().length > 0 && (
                                 <div className="ap-input-group">
                                     <label>Available Sizes</label>
@@ -306,10 +291,10 @@ const AdminProduct = () => {
                             )}
 
                             <div className="ap-input-group">
-                                <label><ImageIcon size={14} /> Media Assets (Upload or URL)</label>
+                                <label><ImageIcon size={14} /> Media Assets</label>
                                 <input type="file" multiple onChange={handleImageChange} accept="image/*" />
                                 <div style={{marginTop:'10px'}}>
-                                    <input type="text" name="imageUrl" placeholder="Cloudinary URL yahan paste karein..." value={formData.imageUrl} onChange={handleChange} />
+                                    <input type="text" name="imageUrl" placeholder="External URL(s) separate by comma..." value={formData.imageUrl} onChange={handleChange} />
                                 </div>
                                 {previews.length > 0 && (
                                     <div className="ap-preview-strip">
@@ -325,7 +310,7 @@ const AdminProduct = () => {
                         </div>
                     ) : (
                         <div className="ap-bulk-section">
-                            <div className="bulk-info">Paste JSON Array or CSV Format. CSV format: Brand, Name, Price, MRP, Stock, Section, Category, SubCategory, ImageURL, Description, Sizes(split by |)</div>
+                            <div className="bulk-info">CSV format: Brand, Name, Price, MRP, Stock, Section, Category, SubCategory, ImageURL, Description, Sizes(split by |)</div>
                             <textarea className="ap-bulk-area" value={bulkText} onChange={(e) => setBulkText(e.target.value)} placeholder='NIKE, Zoom Sneakers, 5000, 8000, 10, MEN, Footwear, Sneakers, http://img.com, Great shoes, 8|9|10' />
                         </div>
                     )}

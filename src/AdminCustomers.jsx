@@ -9,10 +9,14 @@ const AdminCustomers = () => {
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('all');
 
+    // ✅ Dynamic API URL defined here
+    const baseURL = import.meta.env.VITE_API_URL;
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/admin/all-customers', { withCredentials: true });
+                // ✅ Localhost removed, using baseURL
+                const res = await axios.get(`${baseURL}/api/admin/all-customers`, { withCredentials: true });
                 setCustomers(res.data);
             } catch (err) {
                 console.error("Error fetching customers:", err);
@@ -21,7 +25,7 @@ const AdminCustomers = () => {
             }
         };
         fetchUsers();
-    }, []);
+    }, [baseURL]);
 
     const now = new Date();
     const todayUsers = customers.filter(c => new Date(c.createdAt).toDateString() === now.toDateString());
@@ -47,7 +51,6 @@ const AdminCustomers = () => {
 
     return (
         <div className="customers-page">
-            {/* --- TOP STATS CARDS --- */}
             <div className="cust-stats-grid">
                 <div className={`cust-stat-card ${activeFilter === 'all' ? 'active' : ''}`} onClick={() => setActiveFilter('all')}>
                     <div className="stat-icon-wrapper blue"><Users size={24} /></div>
@@ -79,7 +82,6 @@ const AdminCustomers = () => {
                 </div>
             </div>
 
-            {/* --- CONTROLS SECTION --- */}
             <div className="cust-controls">
                 <div className="cust-search-box">
                     <Search size={20} />
@@ -97,7 +99,6 @@ const AdminCustomers = () => {
                 )}
             </div>
 
-            {/* --- TABLE SECTION --- */}
             <div className="cust-table-wrapper">
                 <table className="premium-table">
                     <thead>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast'; // Consistent toast usage
 import { Mail, Lock, LogIn, ArrowRight, ShieldCheck, Fingerprint } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import './Login.css';
@@ -11,7 +11,10 @@ const Login = ({ setUser, setToken }) => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // --- INTERACTIVE 3D SENSORS (NO CHANGES HERE) ---
+    // ✅ Dynamic API URL for production
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+    // --- INTERACTIVE 3D SENSORS ---
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const mouseXSpring = useSpring(x, { stiffness: 120, damping: 20 });
@@ -35,8 +38,8 @@ const Login = ({ setUser, setToken }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // FIX: URL matched exactly with your server.js (app.post("/api/auth/login", login))
-            const res = await axios.post('http://localhost:5000/api/auth/login', formData, { 
+            // Updated to use dynamic API_BASE_URL
+            const res = await axios.post(`${API_BASE_URL}/api/auth/login`, formData, { 
                 withCredentials: true 
             });
 
@@ -54,7 +57,6 @@ const Login = ({ setUser, setToken }) => {
                 navigate('/gallery'); 
             }
         } catch (error) {
-            // Error Handling: 404/401/500 sab handle hoga
             const errorMessage = error.response?.data?.message || "Login failed. Check server connection.";
             toast.error(errorMessage);
             console.error("Login detail error:", error.response);
@@ -65,7 +67,6 @@ const Login = ({ setUser, setToken }) => {
 
     return (
         <div className="login-3d-wrapper">
-            {/* Dynamic Background Elements */}
             <div className="login-bg-orb orb-primary"></div>
             <div className="login-bg-orb orb-secondary"></div>
             <div className="grid-layer"></div>

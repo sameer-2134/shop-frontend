@@ -7,8 +7,9 @@ import {
 } from 'react-icons/fi';
 import './AdminDashboard.css';
 
-// Socket connection (Backend URL setup)
-const socket = io('http://localhost:5000');
+// ✅ Using Dynamic API URL for Socket connection
+const baseURL = import.meta.env.VITE_API_URL;
+const socket = io(baseURL);
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -24,15 +25,17 @@ const AdminLayout = () => {
     const [isPulsing, setIsPulsing] = useState(false);
 
     useEffect(() => {
-        // 1. Initial Data Fetch (Optional: page load par ek baar API call kar sakte ho)
-        
-        // 2. Real-time Listener for Socket Events
+        // 1. Real-time Listener for Socket Events
+        socket.on('connect', () => {
+            console.log("✅ Connected to Real-time Server");
+        });
+
         socket.on('updateLedger', (data) => {
             console.log("💰 Real-time Ledger Update:", data);
             
             setStats({
-                bankBalance: data.bankBalance,
-                expectedCash: data.expectedCash
+                bankBalance: data.bankBalance || 0,
+                expectedCash: data.expectedCash || 0
             });
 
             // Pulse on karo jab naya data aaye
@@ -40,13 +43,11 @@ const AdminLayout = () => {
             
             // 5 second baad pulse band karein
             setTimeout(() => setIsPulsing(false), 5000);
-            
-            // Pro Tip: Agar public folder mein 'cash.mp3' hai toh usey yahan play karo
-            // new Audio('/cash.mp3').play().catch(e => console.log("Audio play error"));
         });
 
         return () => {
             socket.off('updateLedger');
+            socket.off('connect');
         };
     }, []);
 

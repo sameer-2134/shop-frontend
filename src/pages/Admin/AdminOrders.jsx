@@ -12,7 +12,8 @@ const AdminOrders = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // --- PROFESSIONAL INVOICE GENERATOR ---
+    const baseURL = import.meta.env.VITE_API_URL;
+
     const generateInvoicePDF = (order) => {
         if (!order?.address) {
             alert("System Note: Order details are incomplete for PDF generation.");
@@ -66,24 +67,23 @@ const AdminOrders = () => {
         doc.save(`Invoice_OD${displayID}.pdf`);
     };
 
-    // --- API HANDLERS ---
     const fetchOrders = useCallback(async (isInitial = false) => {
         if (isInitial) setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/payment/all-orders', { withCredentials: true });
+            const res = await axios.get(`${baseURL}/api/payment/all-orders`, { withCredentials: true });
             setOrders(res.data);
         } catch (err) {
             console.error("API Fetch Error:", err);
         } finally {
             if (isInitial) setLoading(false);
         }
-    }, []);
+    }, [baseURL]);
 
     const updateOrderStatus = async (orderId, nextStatus) => {
         try {
             if(!orderId) return;
             const statusToPost = nextStatus.toLowerCase();
-            await axios.put(`http://localhost:5000/api/payment/update-status/${orderId}`, 
+            await axios.put(`${baseURL}/api/payment/update-status/${orderId}`, 
                 { status: statusToPost }, 
                 { withCredentials: true }
             );
@@ -196,7 +196,6 @@ const AdminOrders = () => {
                                         <FileText size={16}/> Invoice
                                     </button>
                                     
-                                    {/* --- DYNAMIC ACTION BUTTONS --- */}
                                     {activeTab === 'Pending Labels' && (
                                         <button className="btn-action accept" onClick={() => updateOrderStatus(selectedOrder._id, 'ready')}>
                                             <Check size={16}/> Accept Order
@@ -207,7 +206,6 @@ const AdminOrders = () => {
                                             <Package size={16}/> Mark Packed
                                         </button>
                                     )}
-                                    {/* ✅ FIXED: Handover button for Stage 3 */}
                                     {activeTab === 'Pending Handover' && (
                                         <button className="btn-action ship" style={{backgroundColor: '#2874f0', color: 'white'}} onClick={() => updateOrderStatus(selectedOrder._id, 'shipped')}>
                                             <Truck size={16}/> Handover to Courier

@@ -5,6 +5,9 @@ import axios from 'axios';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+    // Dynamic API URL for production
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
+
     const [cart, setCart] = useState(() => {
         const saved = localStorage.getItem('cart');
         return saved ? JSON.parse(saved) : [];
@@ -28,32 +31,29 @@ export const CartProvider = ({ children }) => {
         localStorage.removeItem('token');
     }, []);
 
-    // ✅ FIXED: Order Success Clear (DB + State + LocalStorage)
+    // ✅ Order Success Clear (DB + State + LocalStorage)
     const orderSuccessClear = useCallback(async () => {
         try {
             const activeToken = getActiveToken();
             
-            // Step A: Backend se cart delete karo taaki refresh par wapas na aaye
+            // Step A: Backend se cart delete karo
             if (activeToken) {
-                await axios.delete('http://localhost:5000/api/cart/empty', {
+                await axios.delete(`${API_BASE_URL}/api/cart/empty`, {
                     headers: { Authorization: `Bearer ${activeToken}` }
                 });
             }
 
-            // Step B: Frontend state khali karo
+            // Step B: Frontend state + LocalStorage khali karo
             setCart([]);
-            
-            // Step C: LocalStorage update karo
             localStorage.removeItem('cart');
             
             console.log("Cart cleared from everywhere! 🔥");
         } catch (error) {
             console.error("Error clearing cart after order:", error);
-            // Fallback: Kuch bhi ho, frontend saaf rehna chahiye
             setCart([]);
             localStorage.removeItem('cart');
         }
-    }, []);
+    }, [API_BASE_URL]);
 
     // 2. Fetch User Data from Server
     const fetchUserData = useCallback(async () => {
@@ -65,8 +65,8 @@ export const CartProvider = ({ children }) => {
 
         try {
             const [cartRes, wishRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/cart', { headers: { Authorization: `Bearer ${activeToken}` } }),
-                axios.get('http://localhost:5000/api/wishlist', { headers: { Authorization: `Bearer ${activeToken}` } })
+                axios.get(`${API_BASE_URL}/api/cart`, { headers: { Authorization: `Bearer ${activeToken}` } }),
+                axios.get(`${API_BASE_URL}/api/wishlist`, { headers: { Authorization: `Bearer ${activeToken}` } })
             ]);
 
             const serverCart = cartRes.data.products?.map(item => {
@@ -96,7 +96,7 @@ export const CartProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    }, [clearCart]);
+    }, [clearCart, API_BASE_URL]);
 
     useEffect(() => {
         fetchUserData();
@@ -127,7 +127,7 @@ export const CartProvider = ({ children }) => {
         
         const token = getActiveToken();
         if (token) {
-            axios.post('http://localhost:5000/api/cart/add', { productId: product._id }, {
+            axios.post(`${API_BASE_URL}/api/cart/add`, { productId: product._id }, {
                 headers: { Authorization: `Bearer ${token}` }
             }).catch(e => console.log(e));
         }
@@ -145,7 +145,7 @@ export const CartProvider = ({ children }) => {
         
         const token = getActiveToken();
         if (token) {
-            axios.post('http://localhost:5000/api/wishlist/add', { productId: product._id }, {
+            axios.post(`${API_BASE_URL}/api/wishlist/add`, { productId: product._id }, {
                 headers: { Authorization: `Bearer ${token}` }
             }).catch(e => console.log(e));
         }
@@ -155,7 +155,7 @@ export const CartProvider = ({ children }) => {
         setWishlist(prev => prev.filter(item => item._id !== id));
         const token = getActiveToken();
         if (token) {
-            axios.delete(`http://localhost:5000/api/wishlist/remove/${id}`, {
+            axios.delete(`${API_BASE_URL}/api/wishlist/remove/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             }).catch(e => console.log(e));
         }
@@ -166,7 +166,7 @@ export const CartProvider = ({ children }) => {
         setCart(prev => prev.filter(item => item._id !== id));
         const token = getActiveToken();
         if (token) {
-            axios.delete(`http://localhost:5000/api/cart/remove/${id}`, {
+            axios.delete(`${API_BASE_URL}/api/cart/remove/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             }).catch(e => console.log(e));
         }
@@ -178,7 +178,7 @@ export const CartProvider = ({ children }) => {
         setCart(prev => prev.map(item => item._id === productId ? { ...item, quantity: newQty } : item));
         const token = getActiveToken();
         if (token) {
-            axios.put('http://localhost:5000/api/cart/update', { productId, quantity: newQty }, {
+            axios.put(`${API_BASE_URL}/api/cart/update`, { productId, quantity: newQty }, {
                 headers: { Authorization: `Bearer ${token}` }
             }).catch(e => console.log(e));
         }

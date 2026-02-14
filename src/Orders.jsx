@@ -16,14 +16,19 @@ const Orders = () => {
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    const API_URL = "http://localhost:5000";
+    // ✅ Dynamic API URL for production
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
     const FALLBACK_IMG = "https://placehold.co/400x400/1e1b4b/white?text=Product";
 
     useEffect(() => {
         const fetchMyOrders = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const res = await axios.get(`${API_URL}/api/payment/my-orders`, {
+                if (!token) {
+                    setLoading(false);
+                    return;
+                }
+                const res = await axios.get(`${API_BASE_URL}/api/payment/my-orders`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.data.success) {
@@ -36,7 +41,7 @@ const Orders = () => {
             }
         };
         fetchMyOrders();
-    }, []); // ✅ Fixed dependency
+    }, [API_BASE_URL]);
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-IN', {
@@ -46,37 +51,49 @@ const Orders = () => {
 
     const getImageUrl = (imagePath) => {
         if (!imagePath) return FALLBACK_IMG;
-        return imagePath.startsWith('http') ? imagePath : `${API_URL}${imagePath}`;
+        return imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}${imagePath}`;
     };
 
-    // --- UPDATED: FIXED REDIRECTION ---
     const handleProductClick = (e, item) => {
         e.stopPropagation();
-        
-        // 1. Check for Product ID (Trying multiple common names)
-        const pId = item.productId || item._id || item.id; 
+        // Backend models ke according id check kar rahe hain
+        const pId = item.productId?._id || item.productId || item._id || item.id; 
         
         if (pId) {
-            // Backend route check: Agar backend router.get('/:id') hai 
-            // toh /product/${pId} sahi hai.
             navigate(`/product/${pId}`); 
         } else {
-            alert("Product details not available for this item.");
+            console.warn("Product ID not found in item:", item);
         }
     };
 
     const downloadInvoice = (order) => {
         try {
             const doc = new jsPDF();
+            doc.setFontSize(20);
             doc.text("SHOPLANE INVOICE", 15, 20);
+            doc.setFontSize(10);
+            doc.text(`Order ID: ${order._id}`, 15, 30);
+            doc.text(`Date: ${formatDate(order.createdAt)}`, 15, 35);
+
             const tableRows = order.items.map(item => [
-                item.name, item.qty, `INR ${item.price}`, `INR ${item.qty * item.price}`
+                item.name, 
+                item.qty, 
+                `₹${item.price}`, 
+                `₹${item.qty * item.price}`
             ]);
+
             doc.autoTable({
-                startY: 40,
+                startY: 45,
                 head: [['Product', 'Qty', 'Price', 'Total']],
                 body: tableRows,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 27, 75] }
             });
+
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(12);
+            doc.text(`Grand Total: ₹${order.amount}`, 150, finalY);
+
             doc.save(`Invoice_${order._id.substring(0, 6)}.pdf`);
         } catch (error) {
             console.error("PDF Error:", error);
@@ -101,7 +118,11 @@ const Orders = () => {
                         </div>
                         <div className="stack-container">
                             {orders.length === 0 ? (
-                                <p className="no-orders">No treasures found yet.</p>
+                                <div className="no-orders-box">
+                                    <FiBox size={50} style={{ opacity: 0.3, marginBottom: '20px' }} />
+                                    <p className="no-orders">No treasures found yet.</p>
+                                    <button className="back-btn-premium" onClick={() => navigate('/gallery')}>Start Shopping</button>
+                                </div>
                             ) : (
                                 orders.map((order) => (
                                     <motion.div 
@@ -111,12 +132,12 @@ const Orders = () => {
                                         whileHover={{ y: -5 }}
                                     >
                                         <div className="card-inner">
-                                            <div className="img-group" onClick={(e) => handleProductClick(e, order.items[0])}>
+                                            <div className="img-group">
                                                 <img src={getImageUrl(order.items[0]?.image)} alt="product" className="main-img-3d" />
                                                 {order.items.length > 1 && <div className="plus-badge">+{order.items.length - 1}</div>}
                                             </div>
-                                            <div className="card-info" onClick={(e) => handleProductClick(e, order.items[0])}>
-                                                <h3 className="hover-underline">{order.items[0]?.name}</h3>
+                                            <div className="card-info">
+                                                <h3 className="hover-underline">{order.items[0]?.name || "Multiple Items"}</h3>
                                                 <span><FiClock /> {formatDate(order.createdAt)}</span>
                                             </div>
                                             <div className="card-right">

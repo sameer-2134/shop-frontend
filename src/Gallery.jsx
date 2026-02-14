@@ -14,9 +14,10 @@ import Lenis from "@studio-freight/lenis";
 import { Loader2, Plus, Search } from "lucide-react";
 import "./Gallery.css";
 
-const API_BASE_URL = "http://localhost:5000/";
-
 const Gallery = () => {
+  // ✅ Dynamic API URL for production
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
   const [products, setProducts] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
@@ -51,17 +52,18 @@ const Gallery = () => {
     return () => lenis.destroy();
   }, []);
 
-  /* ---------------- FETCH LOGIC (BACKEND INTEGRATED) ---------------- */
+  /* ---------------- FETCH LOGIC ---------------- */
   const fetchProducts = useCallback(
     async (loadMore = false) => {
       if (loadMore) setLoadingMore(true);
       else setLoading(true);
 
       try {
-        const res = await axios.get(`${API_BASE_URL}api/products/all`, {
+        // Corrected path to ensure no double slashes
+        const res = await axios.get(`${API_BASE_URL}/api/products/all`, {
           params: {
             limit: 12,
-            cursor: loadMore ? cursor : "", // Naye data ke liye cursor, warna khali
+            cursor: loadMore ? cursor : "",
             search: searchQuery,
             category: selectedCat,
             section: selectedSection
@@ -83,19 +85,17 @@ const Gallery = () => {
         setLoadingMore(false);
       }
     },
-    [cursor, searchQuery, selectedCat, selectedSection]
+    [cursor, searchQuery, selectedCat, selectedSection, API_BASE_URL]
   );
 
   /* ---------------- RESET ON URL CHANGE ---------------- */
   useEffect(() => {
-    // Jab bhi search ya category badle, sab zero se shuru karo
     setCursor(null);
     setHasMore(true);
     fetchProducts(false); 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedCat, selectedSection]);
+  }, [searchQuery, selectedCat, selectedSection]); // Removed fetchProducts from dependency to avoid loop, or keep it if properly memoized
 
-  /* ---------------- LAZY LOADING (INTERSECTION OBSERVER) ---------------- */
+  /* ---------------- LAZY LOADING ---------------- */
   const lastItemRef = useCallback(
     (node) => {
       if (loading || loadingMore) return;
@@ -103,7 +103,7 @@ const Gallery = () => {
 
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
-          fetchProducts(true); // Isse "Lazy Loading" chalu rehti hai
+          fetchProducts(true);
         }
       });
 
@@ -113,10 +113,12 @@ const Gallery = () => {
   );
 
   /* ---------------- UTILS ---------------- */
-  const getImage = (img) =>
-    img?.startsWith("http")
+  const getImage = (img) => {
+    if (!img) return "https://placehold.co/400x600?text=No+Image";
+    return img.startsWith("http")
       ? img
-      : `${API_BASE_URL}${img?.replace(/\\/g, "/")}`;
+      : `${API_BASE_URL}/${img.replace(/\\/g, "/")}`;
+  };
 
   const getGridType = (i) => {
     if (i === 0) return "hero";
@@ -151,7 +153,7 @@ const Gallery = () => {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          key={searchQuery + selectedCat} // Title animate hoga change pe
+          key={searchQuery + selectedCat}
         >
           {searchQuery ? `"${searchQuery}"` : (selectedCat || "STILL LIFE")}
         </motion.h1>
@@ -190,7 +192,6 @@ const Gallery = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(item);
-                          toast.success("ADDED TO BAG");
                         }}
                       >
                         <Plus size={26} />
@@ -202,7 +203,7 @@ const Gallery = () => {
                     <h3>{item.name}</h3>
                     <div className="neo-p-footer">
                       <span>{item.brand || "ARCHIVE"}</span>
-                      <span>₹{item.price}</span>
+                      <span>₹{item.price?.toLocaleString()}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -222,7 +223,6 @@ const Gallery = () => {
         </AnimatePresence>
       </main>
 
-      {/* --- BOTTOM LOADER FOR LAZY LOADING --- */}
       <div style={{ minHeight: "150px" }}>
         {loadingMore && (
           <div className="neo-scroll-loader">

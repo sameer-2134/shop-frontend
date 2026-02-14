@@ -59,7 +59,7 @@ const ProductList = () => {
         try {
             // FIX: Endpoint ko '/api/products/all' kar diya jo tere backend mein hai
             const currentCursor = isFirstLoad ? '' : cursor;
-            const url = `http://localhost:5000/api/products/all?limit=12${currentCursor ? `&cursor=${currentCursor}` : ''}`;
+            const url = `https://shop-backend-production-9f14.up.railway.app/api/products/all?limit=12${currentCursor ? `&cursor=${currentCursor}` : ''}`;
             
             const { data } = await axios.get(url);
             

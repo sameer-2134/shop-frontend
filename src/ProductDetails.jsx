@@ -24,10 +24,11 @@ const ProductDetails = () => {
     const [pincode, setPincode] = useState('');
     const [relatedProducts, setRelatedProducts] = useState([]);
 
-    // Selection Modal State (For Add to Bag)
+    // Selection Modal State
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
     
-    const API_BASE_URL = "http://localhost:5000";
+    // ✅ Production-ready API URL
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -39,6 +40,7 @@ const ProductDetails = () => {
                     setProduct(currentProduct);
                     if (currentProduct.images?.length > 0) setMainImage(currentProduct.images[0]);
                     
+                    // Logic to fetch related products
                     const queryParam = currentProduct.subCategory 
                         ? `subCategory=${encodeURIComponent(currentProduct.subCategory)}` 
                         : `category=${encodeURIComponent(currentProduct.category)}`;
@@ -56,14 +58,12 @@ const ProductDetails = () => {
         };
         if (id) fetchProduct();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [id]);
+    }, [id, API_BASE_URL]);
 
     const handleInitialAdd = () => {
-        // Agar product mein sizes ya colors hain, toh pehle popup khulega
         if ((product.sizes?.length > 0) || (product.colors?.length > 0)) {
             setIsSelectionOpen(true);
         } else {
-            // Agar size/color ki zaroorat nahi hai (jaise accessories), seedha add hoga
             addToCart({ ...product });
         }
     };
@@ -78,10 +78,12 @@ const ProductDetails = () => {
 
     const getFullUrl = (img) => {
         if (!img) return "https://placehold.co/600x800?text=Premium+Piece";
-        return img.startsWith('http') ? img : `${API_BASE_URL}/${img.replace(/\\/g, '/')}`;
+        // Fixing backslashes for windows-based paths and ensuring correct URL
+        const cleanPath = img.replace(/\\/g, '/');
+        return cleanPath.startsWith('http') ? cleanPath : `${API_BASE_URL}/${cleanPath}`;
     };
 
-    if (loading) return <div className="pd-loader"><p>CURATING EXPERIENCE...</p></div>;
+    if (loading) return <div className="pd-loader"><div className="loader-ring"></div><p>CURATING EXPERIENCE...</p></div>;
     if (error || !product) return <div className="pd-error">Product Not Found</div>;
 
     return (
@@ -92,7 +94,7 @@ const ProductDetails = () => {
                     <div className="pd-thumbnails">
                         {product.images?.map((img, index) => (
                             <div key={index} className={`pd-thumb-item ${mainImage === img ? 'active' : ''}`} onMouseEnter={() => setMainImage(img)}>
-                                <img src={getFullUrl(img)} alt="thumb" />
+                                <img src={getFullUrl(img)} alt={`Thumbnail ${index}`} />
                             </div>
                         ))}
                     </div>
@@ -105,7 +107,7 @@ const ProductDetails = () => {
                 <div className="pd-details-section">
                     <nav className="pd-breadcrumb">
                         <Link to="/">Home</Link> <ChevronRight size={12}/> 
-                        <Link to="/shop">Shop</Link> <ChevronRight size={12}/> 
+                        <Link to="/gallery">Shop</Link> <ChevronRight size={12}/> 
                         <span>{product.category}</span>
                     </nav>
 
@@ -114,11 +116,13 @@ const ProductDetails = () => {
                     
                     <div className="pd-price-card-v2">
                         <span className="pd-current-price">₹{product.price?.toLocaleString()}</span>
-                        {product.originalPrice && <span className="pd-original-price">₹{product.originalPrice.toLocaleString()}</span>}
+                        {product.originalPrice && (
+                            <span className="pd-original-price">₹{product.originalPrice.toLocaleString()}</span>
+                        )}
                         <p className="tax-info">inclusive of all taxes</p>
                     </div>
 
-                    {/* SIZE SELECTOR ON PAGE */}
+                    {/* SIZE SELECTOR */}
                     {product.sizes && product.sizes.length > 0 && (
                         <div className="pd-size-section">
                             <div className="size-header">
@@ -139,14 +143,12 @@ const ProductDetails = () => {
                         </div>
                     )}
 
-                    {/* OFFERS SECTION (Matching Screenshot) */}
                     <div className="pd-offers-container">
                         <h3 className="section-label"><Tag size={16}/> BEST OFFERS</h3>
-                        <div className="offer-item">• Flat ₹500 Off on First Purchase. Code: SHOPLANE500</div>
+                        <div className="offer-item">• Flat ₹500 Off on First Purchase. Code: <b>SHOPLANE500</b></div>
                         <div className="offer-item">• 10% Instant Discount on HDFC Bank Cards</div>
                     </div>
 
-                    {/* DELIVERY SECTION */}
                     <div className="pd-pincode-box">
                         <h3 className="section-label"><MapPin size={16}/> DELIVERY OPTIONS</h3>
                         <div className="pincode-input-wrap">
@@ -155,7 +157,6 @@ const ProductDetails = () => {
                         </div>
                     </div>
 
-                    {/* ACTIONS */}
                     <div className="pd-action-btns">
                         <button className="pd-btn-primary" onClick={handleInitialAdd}>
                             <ShoppingBag size={20} /> ADD TO BAG
@@ -192,7 +193,7 @@ const ProductDetails = () => {
                                     <span className="related-brand">{p.brand}</span>
                                     <h4 className="related-name">{p.name}</h4>
                                     <div className="related-price-row">
-                                        <span className="rel-curr">₹{p.price}</span>
+                                        <span className="rel-curr">₹{p.price.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </Link>
@@ -201,7 +202,7 @@ const ProductDetails = () => {
                 </div>
             )}
 
-            {/* SELECTION POPUP DRAWER (Matching Screenshot 4) */}
+            {/* SELECTION POPUP DRAWER */}
             <AnimatePresence>
                 {isSelectionOpen && (
                     <>
@@ -225,7 +226,6 @@ const ProductDetails = () => {
                             </div>
 
                             <div className="drawer-body">
-                                {/* Color Selection */}
                                 {product.colors?.length > 0 && (
                                     <div className="drawer-section">
                                         <h3>COLOR</h3>
@@ -242,7 +242,6 @@ const ProductDetails = () => {
                                     </div>
                                 )}
 
-                                {/* Size Selection */}
                                 {product.sizes?.length > 0 && (
                                     <div className="drawer-section">
                                         <div className="drawer-section-header">
@@ -260,7 +259,7 @@ const ProductDetails = () => {
                                                 </button>
                                             ))}
                                         </div>
-                                        <p className="delivery-tip"><Zap size={14} className="zap-icon-yellow"/> Indicates these sizes are available for fast delivery in your area</p>
+                                        <p className="delivery-tip"><Zap size={14} className="zap-icon-yellow"/> Available for fast delivery</p>
                                     </div>
                                 )}
 

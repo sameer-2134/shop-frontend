@@ -62,7 +62,7 @@ const Register = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // --- ✅ FINAL INTEGRATED FORM LOGIC (FIXED) ---
+    // --- ✅ FINAL INTEGRATED FORM LOGIC (FIXED WITH ENV) ---
     const handleRegister = async (e) => {
         e.preventDefault(); 
         setLoading(true);
@@ -74,8 +74,8 @@ const Register = () => {
             phone: "" 
         };
 
-        // FIXED: Direct Railway URL
-        const baseURL = 'https://shop-backend-production-9f14.up.railway.app';
+        // ✅ AB YE DYNAMIC HAI: .env file se URL uthayega
+        const baseURL = import.meta.env.VITE_API_URL;
 
         try {
             const response = await axios.post(`${baseURL}/api/auth/register`, dataToSend, {
