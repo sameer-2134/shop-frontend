@@ -1,0 +1,528 @@
+:root {
+    --primary: #ff3f6c;
+    --dark: #282c3f;
+    --light-bg: #f5f5f6;
+    --glass: rgba(255, 255, 255, 0.9);
+    --shadow-3d: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.cart-page-wrapper {
+    background: radial-gradient(circle at top, #fff, #f0f2f5);
+    min-height: 100vh;
+    padding: 120px 8% 60px;
+}
+
+/* --- Professional Stepper --- */
+.cart-stepper-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.cart-stepper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.step { font-size: 12px; font-weight: 700; color: #ccc; letter-spacing: 1px; }
+.step.active { color: var(--primary); }
+.step-line { width: 40px; height: 2px; background: #eee; }
+.step-line.active { background: var(--primary); }
+
+/* --- Cart Card 3D Design --- */
+.cart-card-premium {
+    background: var(--glass);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: var(--shadow-3d);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.cart-card-inner { display: flex; gap: 25px; align-items: center; }
+
+.cart-img-3d-wrap {
+    width: 130px;
+    height: 170px;
+    border-radius: 15px;
+    overflow: hidden;
+    transform: perspective(1000px) rotateY(-10deg);
+    box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
+    transition: 0.5s ease;
+}
+
+.cart-card-premium:hover .cart-img-3d-wrap {
+    transform: perspective(1000px) rotateY(0deg);
+}
+
+.cart-img-3d-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+.brand-label { font-size: 13px; color: var(--primary); font-weight: 800; text-transform: uppercase; }
+.product-title { font-size: 17px; margin: 5px 0 15px; color: var(--dark); font-weight: 400; }
+
+/* --- Modern Controls --- */
+.modern-qty-box {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 5px;
+    border: 1px solid #eee;
+}
+
+.modern-qty-box button {
+    width: 35px; height: 35px; border: none; background: white;
+    border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s;
+}
+
+.modern-qty-box button:hover:not(:disabled) { background: var(--primary); color: white; }
+.modern-qty-box span { padding: 0 20px; font-weight: 700; }
+
+.price-stack { text-align: right; }
+.current-p { display: block; font-size: 22px; font-weight: 900; color: var(--dark); }
+.old-p { font-size: 14px; text-decoration: line-through; color: #999; }
+
+/* --- Sidebar 3D --- */
+.price-sidebar-premium {
+    position: sticky;
+    top: 120px;
+}
+
+.bill-card-3d {
+    background: var(--dark);
+    color: white;
+    padding: 30px;
+    border-radius: 30px;
+    box-shadow: 0 30px 60px rgba(40, 44, 63, 0.2);
+}
+
+.summary-title { font-size: 12px; opacity: 0.6; letter-spacing: 1px; margin-bottom: 25px; }
+
+.b-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 15px; font-weight: 300; }
+.total-amount { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; font-size: 22px; font-weight: 800; }
+
+.place-order-btn-3d {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 25px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.trust-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 10px;
+    opacity: 0.5;
+}
+
+.remove-btn-3d {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: #fff;
+    border: 1px solid #eee;
+    width: 35px; height: 35px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #ff4d4d;
+    transition: 0.3s;
+    z-index: 2;
+}
+
+.remove-btn-3d:hover { background: #4dcaffc4; color: #fff; transform: rotate(90deg); }
+:root {
+    --primary: #ff3f6c17;
+    --dark: #282c3f;
+    --text-muted: #535766;
+    --glass: rgba(255, 255, 255, 0.95);
+    --shadow-3d: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+/* 1. Main Page Wrapper Fix */
+.cart-page-wrapper {
+    background: radial-gradient(circle at top, #fff, #f4f6f8);
+    min-height: 100vh;
+    padding: 140px 10% 80px; /* Top padding increased */
+}
+
+/* 2. Cart Card Premium - Fixed Padding & Spacing */
+.cart-card-premium {
+    background: var(--glass);
+    border-radius: 24px;
+    padding: 30px !important; /* Zyada internal space */
+    margin-bottom: 35px !important; /* Cards ke beech gap */
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: var(--shadow-3d);
+    position: relative;
+    display: flex; /* Flex ensures horizontal alignment */
+    gap: 40px; /* Image aur Info ke beech solid gap */
+    align-items: flex-start;
+    transition: transform 0.3s ease;
+}
+
+.cart-card-premium:hover {
+    transform: translateY(-5px);
+}
+
+/* 3. Image Wrap - Fixed Size to prevent overlap */
+.cart-img-3d-wrap {
+    flex-shrink: 0; /* Image size choti nahi hogi */
+    width: 140px;
+    height: 190px;
+    border-radius: 18px;
+    overflow: hidden;
+    transform: perspective(1000px) rotateY(-5deg);
+    box-shadow: 12px 12px 25px rgba(0,0,0,0.15);
+}
+
+/* 4. Item Info - Text and Layout */
+.cart-item-info {
+    flex-grow: 1; /* Baaki bachi jagah ye lega */
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Har line ke beech gap */
+}
+
+.brand-label {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+}
+
+.product-title {
+    font-size: 18px;
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    line-height: 1.6; /* Line height fixed */
+    max-width: 80%; /* Text trash button se na takraye */
+}
+
+/* 5. Modern Qty & Price Flex - Better Spacing */
+.qty-price-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Dono corners par stretch */
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #eee; /* Halka divider */
+}
+
+.modern-qty-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid #f0f0f0;
+    border-radius: 14px;
+    padding: 6px;
+}
+
+.price-stack {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.current-p {
+    font-size: 24px;
+    color: var(--dark);
+    font-weight: 900;
+}
+
+/* 6. Sidebar/Summary Card - Spacing Fix */
+.price-sidebar-premium {
+    margin-top: 0; /* Section top alignment */
+}
+
+.bill-card-3d {
+    background: #1e2230; /* Darker navy for premium contrast */
+    padding: 35px;
+    border-radius: 35px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+}
+
+.b-row {
+    margin-bottom: 22px !important; /* Rows ke beech gap */
+    letter-spacing: 0.5px;
+}
+
+.total-amount {
+    margin-top: 25px;
+    padding-top: 25px;
+    font-size: 26px;
+}
+
+/* 7. Remove Button Positioning */
+.remove-btn-3d {
+    top: 25px !important;
+    right: 25px !important;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(16, 85, 80, 0.248);
+}:root {
+    /* Fixed: Primary color was too transparent, changed back to solid Myntra Pink */
+    --primary: #ff3f6c; 
+    --dark: #282c3f;
+    --text-muted: #535766;
+    --glass: rgba(255, 255, 255, 0.95);
+    --shadow-3d: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.cart-page-wrapper {
+    background: radial-gradient(circle at top, #fff, #f4f6f8);
+    min-height: 100vh;
+    padding: 140px 10% 80px;
+}
+
+/* --- Stepper Fix --- */
+.cart-stepper-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.cart-stepper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 15px 40px !important;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* --- Cart Card Fix (No Overlap) --- */
+.cart-card-premium {
+    background: var(--glass);
+    border-radius: 24px;
+    padding: 30px !important;
+    margin-bottom: 30px !important;
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: var(--shadow-3d);
+    position: relative;
+    display: flex;
+    gap: 40px; 
+    align-items: center;
+    transition: transform 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.cart-card-premium:hover {
+    transform: translateY(-5px);
+}
+
+.cart-img-3d-wrap {
+    flex-shrink: 0;
+    width: 140px;
+    height: 190px;
+    border-radius: 18px;
+    overflow: hidden;
+    transform: perspective(1000px) rotateY(-8deg);
+    box-shadow: 10px 10px 20px rgba(0,0,0,0.15);
+}
+
+.cart-item-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-label {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.product-title {
+    font-size: 18px;
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+/* --- Qty & Price --- */
+.qty-price-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+}
+
+.modern-qty-box {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.modern-qty-box button {
+    width: 32px; height: 32px; border: none; background: white;
+    border-radius: 8px; cursor: pointer; font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.modern-qty-box button:hover { background: var(--primary); color: white; }
+
+.current-p { font-size: 24px; font-weight: 900; color: var(--dark); }
+
+/* --- Bill Summary Card (Fixed Visibility) --- */
+.bill-card-3d {
+    background: #1e2230; 
+    padding: 35px;
+    border-radius: 35px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    color: #ffffff !important; /* Pure white text */
+}
+
+.summary-title { 
+    font-size: 13px; color: rgba(255, 255, 255, 0.6); 
+    margin-bottom: 25px; font-weight: 600; letter-spacing: 1px;
+}
+
+.b-row { 
+    display: flex; justify-content: space-between; 
+    margin-bottom: 20px !important; color: #ffffff !important;
+}
+
+.text-success { color: #03f0af !important; font-weight: 700; }
+
+.total-amount { 
+    border-top: 1px solid rgba(255,255,255,0.15); 
+    padding-top: 25px; margin-top: 10px;
+    font-size: 24px; font-weight: 800; color: #ffffff !important;
+}
+
+/* --- Place Order Button --- */
+.place-order-btn-3d {
+    width: 100%;
+    background: var(--primary);
+    color: white !important;
+    border: none;
+    padding: 18px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 25px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(255, 63, 108, 0.3);
+}
+
+/* --- Remove Button Fix --- */
+.remove-btn-3d {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #ff4d4d;
+    transition: 0.3s;
+    z-index: 5;
+}
+
+.remove-btn-3d:hover { 
+    background: #ff4d4d; 
+    color: #fff; 
+    transform: rotate(90deg); 
+}
+/* --- Empty Cart Styles (Premium Look) --- */
+.empty-cart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #ffffff 0%, #f9f9f9 100%);
+    padding: 20px;
+    text-align: center;
+}
+
+.empty-cart-content {
+    background: white;
+    padding: 60px 40px;
+    border-radius: 40px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.05);
+    max-width: 450px;
+    width: 100%;
+    border: 1px solid #f0f0f0;
+}
+
+.cart-icon-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    background: #fff0f3;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+}
+
+.empty-cart-content h3 {
+    font-size: 24px;
+    color: var(--dark);
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.empty-cart-content p {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 35px;
+}
+
+.shop-now-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(255, 63, 108, 0.25);
+}
+
+.shop-now-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(255, 63, 108, 0.4);
+    background: #e83961;
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+    .cart-content-container {
+        flex-direction: column;
+    }
+    .cart-page-wrapper {
+        padding: 100px 5% 40px;
+    }
+}

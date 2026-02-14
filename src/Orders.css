@@ -1,0 +1,274 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+
+:root {
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --accent: #7c3aed;
+    --neon: #a78bfa;
+}
+
+.premium-orders-canvas {
+    background: #050505;
+    min-height: 100vh;
+    padding: 50px 8%;
+    color: #fff;
+    position: relative;
+    font-family: 'Outfit', sans-serif;
+}
+
+.mesh-gradient {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, #0f172a 0%, transparent 40%);
+    z-index: 0;
+}
+
+/* 3D List Cards */
+.order-glass-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.order-glass-card::before {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+    transition: 0.5s;
+}
+
+.order-glass-card:hover::before { left: 100%; }
+
+.card-content-3d { display: flex; align-items: center; gap: 25px; }
+
+.img-box-3d img {
+    width: 90px; height: 90px; border-radius: 18px;
+    object-fit: cover; border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.info-box-3d h3 { font-size: 1.2rem; margin-bottom: 8px; font-weight: 500; }
+.meta-3d { display: flex; gap: 20px; color: #94a3b8; font-size: 0.9rem; }
+.price-tag-3d { color: #fff; font-weight: 700; letter-spacing: 1px; }
+
+/* Bento Grid Detail View */
+.bento-grid-3d {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.bento-item {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    padding: 30px;
+    backdrop-filter: blur(30px);
+}
+
+.main-product { grid-row: span 1; display: flex; flex-direction: column; gap: 20px; }
+.item-row-3d { display: flex; align-items: center; gap: 25px; position: relative; }
+.item-row-3d img { width: 120px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+.live-tag {
+    position: absolute; top: 0; right: 0;
+    background: rgba(16, 185, 129, 0.1); color: #10b981;
+    padding: 6px 15px; border-radius: 100px; font-size: 0.75rem; border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.tracking-stepper {
+    display: flex; flex-direction: column; gap: 25px; margin-top: 20px;
+}
+
+.step-3d { display: flex; align-items: center; gap: 15px; color: #64748b; }
+.step-3d.active { color: var(--neon); text-shadow: 0 0 15px var(--neon); }
+.step-3d.completed { color: #10b981; }
+
+.download-btn-3d {
+    width: 100%; margin-top: 20px; padding: 15px;
+    border-radius: 15px; border: none;
+    background: linear-gradient(135deg, var(--accent), #4f46e5);
+    color: white; font-weight: 600; cursor: pointer;
+    box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+    transition: 0.3s;
+}
+
+.download-btn-3d:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(124, 58, 237, 0.5); }
+
+.spin { animation: spin 3s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+@media (max-width: 900px) {
+    .bento-grid-3d { grid-template-columns: 1fr; }
+}
+
+:root {
+    --bg: #050508;
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --accent: #6366f1;
+}
+
+.orders-canvas {
+    background: var(--bg);
+    min-height: 100vh;
+    padding: 60px 10%;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.ambient-orb {
+    position: fixed;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    filter: blur(50px);
+}
+
+/* --- VIEW 1: LIST STYLING --- */
+.header-glass { margin-bottom: 40px; }
+.header-glass h1 { font-size: 2.5rem; display: flex; align-items: center; gap: 15px; }
+.icon-glow { color: var(--accent); filter: drop-shadow(0 0 10px var(--accent)); }
+
+.premium-order-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    backdrop-filter: blur(15px);
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    perspective: 1000px;
+}
+
+.premium-order-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: var(--accent);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.card-inner { display: flex; align-items: center; gap: 25px; }
+
+.img-group { position: relative; width: 90px; height: 90px; }
+.main-img-3d { width: 100%; height: 100%; border-radius: 18px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+.plus-badge { 
+    position: absolute; bottom: -5px; right: -5px; 
+    background: var(--accent); color: white; padding: 2px 8px; 
+    border-radius: 10px; font-size: 0.75rem; font-weight: bold;
+}
+
+.card-info h3 { margin: 0 0 5px 0; font-weight: 500; font-size: 1.2rem; }
+.card-info span { color: #94a3b8; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+
+.card-right { margin-left: auto; text-align: right; display: flex; align-items: center; gap: 30px; }
+.price-3d { font-size: 1.4rem; font-weight: 700; color: #fff; }
+.status-pill-3d { 
+    background: rgba(16, 185, 129, 0.1); color: #10b981; 
+    padding: 6px 16px; border-radius: 100px; font-size: 0.8rem; font-weight: 600;
+}
+
+/* --- VIEW 2: DETAIL BENTO GRID --- */
+.bento-grid-3d {
+    display: flex; gap: 25px; margin-top: 30px;
+}
+
+.main-items { flex: 2; }
+.bento-sidebar { flex: 1; display: flex; flex-direction: column; gap: 25px; }
+
+.bento-box {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 30px;
+    backdrop-filter: blur(20px);
+}
+
+.back-btn-premium {
+    background: none; border: none; color: var(--accent);
+    font-weight: 600; display: flex; align-items: center; gap: 10px;
+    cursor: pointer; margin-bottom: 20px; transition: 0.3s;
+}
+
+.item-detail-row {
+    display: flex; align-items: center; gap: 20px;
+    padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+}
+
+.item-img-container-3d img { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; }
+.item-meta-3d h4 { margin: 0 0 5px 0; font-size: 1.1rem; }
+.item-total-3d { margin-left: auto; font-weight: 700; font-size: 1.2rem; color: var(--accent); }
+
+.tracking-section-3d {
+    display: flex; justify-content: space-between; margin-top: 40px;
+    padding: 20px; background: rgba(255,255,255,0.02); border-radius: 20px;
+}
+
+.step-3d { display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 0.9rem; }
+.step-3d.active { color: #10b981; font-weight: 600; }
+.step-3d.processing { color: var(--accent); }
+
+.price-breakup .p-line { display: flex; justify-content: space-between; margin-bottom: 12px; color: #94a3b8; }
+.price-breakup .total { border-top: 1px solid var(--border); padding-top: 15px; color: white; font-size: 1.3rem; font-weight: 700; }
+
+.invoice-btn-3d {
+    width: 100%; margin-top: 20px; padding: 15px;
+    background: var(--accent); color: white; border: none;
+    border-radius: 15px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    transition: 0.3s;
+}
+
+.invoice-btn-3d:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5); }
+
+/* Loader Animation */
+.premium-loader-container { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); }
+.loader-cube-3d { width: 40px; height: 40px; background: var(--accent); animation: rotateCube 1.2s infinite ease-in-out; }
+@keyframes rotateCube { 0% { transform: perspective(120px) rotateX(0deg) rotateY(0deg); } 50% { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); } 100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); } }
+.spin { animation: spin 2s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+@media (max-width: 900px) { .bento-grid-3d { flex-direction: column; } }
+/* Product redirection effects */
+.img-group {
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.view-prod-hint {
+    position: absolute;
+    bottom: 0; width: 100%;
+    background: rgba(99, 102, 241, 0.8);
+    color: white; font-size: 0.6rem; text-align: center;
+    padding: 2px 0; opacity: 0; transition: 0.3s;
+}
+
+.img-group:hover .view-prod-hint { opacity: 1; }
+
+.hover-underline:hover {
+    text-decoration: underline;
+    color: var(--accent);
+}
+
+.item-detail-row.clickable-row {
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.item-detail-row.clickable-row:hover {
+    background: rgba(255,255,255,0.02);
+    padding-left: 10px;
+}

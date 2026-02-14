@@ -1,0 +1,61 @@
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.stat-card {
+    background: #1e1e1e; /* Dark theme card */
+    padding: 24px;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(var(--card-color), 0.1);
+    color: var(--card-color);
+}
+
+.stat-content h3 {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 4px 0;
+}
+
+.stat-desc {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Glowing Aura */
+.card-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, var(--card-color) 0%, transparent 70%);
+    opacity: 0.05;
+    pointer-events: none;
+}

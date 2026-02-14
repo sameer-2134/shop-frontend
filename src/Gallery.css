@@ -1,0 +1,232 @@
+.neo-gallery-root {
+  background: #fff;
+  padding: 60px 4%;
+  font-family: "Inter", sans-serif;
+}
+
+/* ---------- HERO ---------- */
+.neo-hero {
+  margin-bottom: 80px;
+}
+
+.neo-hero span {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #888;
+}
+
+.neo-hero h1 {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 400;
+  margin-top: 10px;
+}
+
+/* ---------- GRID ---------- */
+.neo-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(18px, 3vw, 36px);
+}
+
+/* ---------- CARD TYPES ---------- */
+.neo-hero {
+  grid-column: span 6;
+}
+
+.neo-wide {
+  grid-column: span 5;
+}
+
+.neo-tall {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+.neo-standard {
+  grid-column: span 3;
+}
+
+/* ---------- CARD ---------- */
+.neo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.neo-img-wrapper {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.neo-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+
+.neo-card:hover img {
+  transform: scale(1.08);
+}
+
+/* ---------- OVERLAY ---------- */
+.neo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.45),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.neo-card:hover .neo-overlay {
+  opacity: 1;
+}
+
+.neo-quick-add {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ---------- DETAILS ---------- */
+.neo-details h3 {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.neo-p-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #555;
+}
+
+/* ---------- LOADER ---------- */
+.neo-loader,
+.neo-scroll-loader {
+  text-align: center;
+  padding: 80px 0;
+  font-size: 12px;
+  letter-spacing: 4px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- NO RESULTS ---------- */
+.neo-no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #777;
+  padding: 100px 0;
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width: 768px) {
+  .neo-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .neo-hero,
+  .neo-wide,
+  .neo-tall,
+  .neo-standard {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+/* ... baki purana CSS upar wala same rahega ... */
+
+/* ---------- MOBILE RESPONSIVE (FIXED) ---------- */
+@media (max-width: 768px) {
+  .neo-gallery-root {
+    padding: 40px 15px; /* Side padding thoda kam kiya mobile ke liye */
+  }
+
+  .neo-hero {
+    margin-bottom: 40px;
+    grid-column: 1 / -1; /* Mobile pe full width */
+  }
+
+  .neo-hero h1 {
+    font-size: 2.8rem; /* Mobile pe heading choti */
+    line-height: 1.1;
+  }
+
+  /* Grid Reset for Mobile */
+  .neo-grid {
+    grid-template-columns: repeat(2, 1fr) !important; /* Force 2 columns */
+    gap: 15px; /* Mobile pe gap kam */
+  }
+
+  /* Saare card types ko mobile pe 1 column width kar do */
+  /* Agar aapko 1 row mein 1 product dikhana hai toh 'span 2' kardo */
+  .neo-hero,
+  .neo-wide,
+  .neo-tall,
+  .neo-standard {
+    grid-column: span 1 !important; 
+    grid-row: span 1 !important;
+  }
+
+  /* Specially TALL card ko mobile pe stretch hone se roko */
+  .neo-tall .neo-img-wrapper {
+    aspect-ratio: 3 / 4; /* Standard ratio for all on mobile */
+  }
+
+  /* Overlay and Buttons (Mobile Touch Friendly) */
+  .neo-quick-add {
+    width: 40px;
+    height: 40px;
+    bottom: 10px;
+    right: 10px;
+    opacity: 1; /* Mobile pe hover nahi hota, isliye hamesha dikhao ya touch pe */
+  }
+
+  .neo-overlay {
+    opacity: 1; /* Mobile pe tap experience ke liye gradient dikhne do */
+    background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);
+  }
+
+  .neo-details h3 {
+    font-size: 13px;
+  }
+
+  .neo-p-footer {
+    flex-direction: column; /* Price niche aa jayega agar jagah kam ho */
+    gap: 4px;
+    font-size: 12px;
+  }
+}
+
+/* Very Small Screens (Phones) */
+@media (max-width: 480px) {
+    .neo-grid {
+        grid-template-columns: 1fr !important; /* Single column for very small phones */
+    }
+    .neo-hero, .neo-wide, .neo-tall, .neo-standard {
+        grid-column: span 1 !important;
+    }
+}

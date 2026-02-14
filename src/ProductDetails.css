@@ -1,0 +1,611 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
+
+.pd-wrapper {
+    background-color: #fcfcfc;
+    min-height: 100vh;
+    padding: 100px 20px 40px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.pd-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: grid;
+    /* FIX: minmax content ko overlap hone se rokta hai */
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+    gap: 60px;
+    align-items: start;
+}
+
+/* --- Premium Gallery Section --- */
+.pd-gallery-section {
+    display: flex;
+    gap: 25px;
+    position: sticky;
+    top: 100px;
+}
+
+.pd-thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 10;
+    min-width: 85px; /* Locked size */
+    flex-shrink: 0; /* No collapse */
+}
+
+.pd-thumb-item {
+    width: 80px;
+    height: 100px;
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    background: #ffffff;
+    border: 2px solid #eeeeee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pd-thumb-item img {
+    width: 100%;
+    height: 100%;
+    /* contain use kiya hai taaki product images kategi nahi */
+    object-fit: contain; 
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.pd-thumb-item.active {
+    border-color: #000000;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.pd-thumb-item:hover {
+    border-color: #bbbbbb;
+    transform: translateY(-2px);
+}
+
+.pd-thumb-item:hover img {
+    transform: scale(1.1);
+}
+
+.pd-main-viewer {
+    flex-grow: 1;
+    height: 650px;
+    background: #fff;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 1px solid #f0f0f0;
+}
+
+/* --- Elegant Details Section --- */
+.pd-brand-tag {
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #999;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.pd-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #111;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.pd-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #000;
+    color: #fff;
+    padding: 6px 15px;
+    border-radius: 50px;
+    width: fit-content;
+    font-size: 13px;
+    margin-bottom: 30px;
+}
+
+.pd-price-card {
+    padding: 30px 0;
+    border-top: 1px solid #eee;
+}
+
+.pd-price-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.pd-current-price {
+    font-size: 36px;
+    font-weight: 800;
+    color: #111;
+}
+
+.pd-original-price {
+    font-size: 20px;
+    color: #bbb;
+    text-decoration: line-through;
+}
+
+.pd-discount-badge {
+    background: #e7fffa;
+    color: #03a685;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* --- Action Buttons --- */
+.pd-action-btns {
+    display: flex;
+    gap: 15px;
+    margin: 40px 0;
+}
+
+.pd-btn-primary {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 20px 40px;
+    border-radius: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    flex: 1.5;
+    transition: 0.3s;
+}
+
+.pd-btn-secondary {
+    background: #fff;
+    color: #000;
+    border: 2px solid #eee;
+    padding: 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    flex: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.pd-btn-primary:hover { 
+    background: #222;
+    transform: translateY(-5px); 
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15); 
+}
+
+.pd-btn-secondary:hover {
+    border-color: #000;
+    background: #fafafa;
+}
+
+/* --- Description --- */
+.pd-description { margin-top: 50px; }
+.pd-description h3 { font-size: 14px; letter-spacing: 2px; margin-bottom: 15px; color: #000; }
+.pd-description p { color: #666; line-height: 1.8; font-size: 15px; }
+
+/* Responsive Fixes */
+@media (max-width: 1024px) {
+    .pd-container { grid-template-columns: 1fr; }
+    .pd-gallery-section { 
+        flex-direction: column-reverse; 
+        position: relative;
+        top: 0;
+    }
+    .pd-thumbnails { 
+        flex-direction: row; 
+        justify-content: center;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+    .pd-main-viewer { height: 500px; }
+}
+/* Breadcrumbs */
+.pd-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 25px;
+    color: #999;
+}
+.pd-breadcrumb a { text-decoration: none; color: inherit; transition: 0.3s; }
+.pd-breadcrumb a:hover { color: #000; }
+.pd-breadcrumb span { color: #555; font-weight: 600; }
+
+.pd-subtitle { color: #888; margin-top: -15px; margin-bottom: 20px; font-size: 16px; font-style: italic; }
+
+/* Ratings */
+.pd-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+.rating-badge {
+    background: #03a685;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+.rating-sep { color: #ddd; }
+.rating-text { font-size: 13px; color: #666; font-weight: 600; }
+
+.tax-info { font-size: 12px; color: #999; margin-top: 5px; font-weight: 600; }
+
+/* Size Selector */
+.pd-size-section { margin: 35px 0; }
+.size-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.size-header h3 { font-size: 14px; font-weight: 800; letter-spacing: 1px; }
+.size-chart-link { font-size: 13px; color: #ff3e6c; font-weight: 700; cursor: pointer; }
+
+.size-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.size-btn {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 13px;
+}
+.size-btn:hover { border-color: #ff3e6c; color: #ff3e6c; }
+.size-btn.active { background: #000; color: #fff; border-color: #000; }
+
+/* Offers & Pincode */
+.section-label { font-size: 13px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+.pd-offers-container {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #ddd;
+    margin-bottom: 30px;
+}
+.offer-item { font-size: 13px; margin-bottom: 8px; color: #444; }
+
+.pd-pincode-box { margin-bottom: 40px; }
+.pincode-input-wrap {
+    display: flex;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 300px;
+}
+.pincode-input-wrap input {
+    border: none;
+    padding: 12px 15px;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+}
+.pincode-input-wrap button {
+    background: none;
+    border: none;
+    padding: 0 15px;
+    color: #ff3e6c;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+}
+.pincode-note { font-size: 11px; color: #999; margin-top: 8px; line-height: 1.4; }
+
+/* Trust Strip */
+.pd-trust-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 25px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 40px;
+}
+.trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+.trust-item span { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+/* Related Products Section */
+.related-section {
+    max-width: 1300px;
+    margin: 80px auto 40px;
+    padding: 0 20px;
+}
+
+.section-divider {
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    line-height: 0.1em;
+    margin: 40px 0 50px;
+}
+
+.section-divider span {
+    background: #fcfcfc;
+    padding: 0 25px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    font-size: 14px;
+    color: #111;
+}
+
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.related-card {
+    text-decoration: none;
+    color: inherit;
+    transition: 0.4s;
+    position: relative;
+}
+
+.related-img-wrapper {
+    width: 100%;
+    height: 380px;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #f5f5f5;
+    position: relative;
+}
+
+.related-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.related-card:hover .related-img-wrapper img {
+    transform: scale(1.08);
+}
+
+.related-discount {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #03a685;
+}
+
+.related-info {
+    margin-top: 15px;
+}
+
+.related-brand {
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #999;
+}
+
+.related-name {
+    font-size: 15px;
+    color: #333;
+    margin: 5px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.related-price-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.rel-curr { font-weight: 800; color: #111; font-size: 15px; }
+.rel-old { color: #bbb; text-decoration: line-through; font-size: 13px; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .related-grid { grid-template-columns: repeat(2, 1fr); }
+    .related-img-wrapper { height: 300px; }
+}/* --- Color Selector Styling --- */
+.pd-color-section {
+    margin-bottom: 25px;
+}
+
+.pd-color-section h3 {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.color-grid {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.color-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #eeeeee;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 0;
+    outline: none;
+}
+
+/* Jab color select ho toh uske baahar ek ring dikhegi */
+.color-circle.active {
+    border-color: #000;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 3px #fff, 0 0 0 5px #000;
+}
+
+.color-circle:hover {
+    transform: scale(1.1);
+    border-color: #bbb;
+}
+
+/* White color ke liye halka border taaki background mein mix na ho */
+.color-circle[style*="background-color: white"],
+.color-circle[style*="background-color: #fff"] {
+    border: 1px solid #ddd;
+}
+/* Drawer Overlay */
+.selection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+/* Bottom Drawer */
+.selection-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    z-index: 1001;
+    border-radius: 20px 20px 0 0;
+    padding: 24px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.drawer-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.drawer-section {
+    margin-bottom: 25px;
+}
+
+.drawer-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.drawer-color-grid {
+    display: flex;
+    gap: 15px;
+}
+
+.drawer-color-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid #eee;
+}
+
+.drawer-color-btn.active {
+    border-color: #000;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px #000;
+}
+
+.drawer-size-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.drawer-size-btn {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    background: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.drawer-size-btn.active {
+    background: #000;
+    color: white;
+}
+
+.zap-icon { color: #ff9f00; }
+.zap-icon-yellow { color: #ffc107; fill: #ffc107; }
+
+.green-link {
+    color: #2e7d32;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.delivery-tip {
+    font-size: 12px;
+    color: #666;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.drawer-add-btn {
+    width: 100%;
+    background: #10b981; /* Premium Green as per screenshot */
+    color: white;
+    padding: 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 20px;
+    border: none;
+}
+
+.drawer-add-btn.disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

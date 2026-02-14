@@ -1,0 +1,84 @@
+.bulk-container {
+    padding: 20px;
+    background: #fff;
+}
+
+.bulk-header {
+    margin-bottom: 30px;
+}
+
+.bulk-header h3 {
+    letter-spacing: 4px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.bulk-header p {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.bulk-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.bulk-table th {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 1px solid #000;
+    letter-spacing: 1px;
+}
+
+.bulk-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.bulk-table input {
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 5px;
+    width: 100%;
+    outline: none;
+}
+
+.bulk-table input:focus {
+    border-bottom: 1px solid #888;
+}
+
+.file-input {
+    font-size: 9px;
+}
+
+.bulk-footer {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+}
+
+.btn-primary {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.btn-secondary {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+    padding: 12px 30px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-size: 11px;
+}

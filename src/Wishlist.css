@@ -1,0 +1,283 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --glass: #ffffff;
+    --premium-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    --accent: #000000;
+    --dark: #1e293b;
+    --border: #f1f5f9;
+}
+
+/* --- Full Page White Theme --- */
+.wishlist-page-wrapper {
+    background-color: #ffffff;
+    min-height: 100vh;
+    width: 100%;
+    padding-top: 100px;
+}
+
+.wishlist-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    perspective: 1200px;
+}
+
+/* --- Premium Header --- */
+.wishlist-header {
+    margin-bottom: 60px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+}
+
+.wishlist-header h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: #000;
+    letter-spacing: -1px;
+}
+
+.wishlist-header h2 span {
+    color: #64748b;
+    font-weight: 400;
+    font-size: 20px;
+    margin-left: 10px;
+}
+
+/* --- 3D Wishlist Card --- */
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.wishlist-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+    transform-style: preserve-3d;
+    box-shadow: var(--premium-shadow);
+    overflow: hidden;
+}
+
+.wishlist-card:hover {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.08);
+    border-color: #e2e8f0;
+}
+
+/* Image Parallax Effect */
+.wishlist-img-container {
+    width: 100%;
+    aspect-ratio: 0.8;
+    overflow: hidden;
+    position: relative;
+    background: #fafafa;
+}
+
+.wishlist-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+.wishlist-card:hover .wishlist-img-container img {
+    transform: scale(1.08);
+}
+
+/* --- Quick Size Overlay (Modern UX) --- */
+.quick-size-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    transform: translateY(101%);
+    transition: transform 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+    text-align: center;
+}
+
+.wishlist-card:hover .quick-size-overlay {
+    transform: translateY(0);
+}
+
+.quick-size-overlay p {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    color: #64748b;
+}
+
+.mini-size-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.mini-size-btn {
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.mini-size-btn.selected {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+/* --- Remove Button --- */
+.remove-wishlist {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    border: none;
+    z-index: 10;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.remove-wishlist:hover {
+    background: #ef4444;
+    color: white;
+    transform: rotate(90deg);
+}
+
+/* --- Info --- */
+.wishlist-info {
+    padding: 20px;
+}
+
+.wishlist-brand {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.wishlist-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+}
+
+.old-price {
+    font-size: 14px;
+    color: #94a3b8;
+    text-decoration: line-through;
+    margin-left: 8px;
+}
+
+/* --- MOVE TO BAG BUTTON --- */
+.move-to-bag-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: #000;
+    color: #fff;
+    border-radius: 12px;
+    border: none;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.move-to-bag-btn:hover {
+    background: #334155;
+    transform: translateY(-2px);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .wishlist-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .wishlist-container { padding: 20px 15px; }
+    .quick-size-overlay { transform: translateY(0); position: relative; background: transparent; padding: 10px 0; }
+}/* Size Overlay behavior */
+.quick-size-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 5px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.wishlist-card:hover .quick-size-overlay,
+.quick-size-overlay.force-show {
+    transform: translateY(0); /* Jab size na ho toh ye force show hoga */
+}
+
+/* Mini size buttons */
+.mini-size-btn {
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.mini-size-btn.active {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+/* Shake Animation for validation error */
+.shake-animation {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+/* Button style if size is missing */
+.move-to-bag-btn.needs-selection {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+}

@@ -1,0 +1,27 @@
+.magnifier-container.inner-zoom {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Taaki zoom image container se bahar na jaye */
+  cursor: zoom-in;
+  border: 1px solid #f0f0f0;
+}
+
+.main-product-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.magnifier-window-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: 200%; /* Aap isse 250% ya 300% bhi kar sakte ho jitna zoom chahiye */
+  pointer-events: none; /* Mouse movements ko niche wali image tak jane dega */
+  background-color: #white;
+  z-index: 10;
+}

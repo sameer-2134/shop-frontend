@@ -1,0 +1,108 @@
+/* --- THE ATELIER LUXURY ADMIN LAYOUT --- */
+.atelier-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Sidebar Styling */
+.atelier-sidebar {
+    width: 260px;
+    background-color: #1a1a1a; /* Deep Charcoal */
+    color: #ffffff;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+}
+
+.atelier-sidebar h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 50px;
+    color: #fff;
+    border-bottom: 1px solid #333;
+    padding-bottom: 20px;
+}
+
+.atelier-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.atelier-nav button {
+    background: transparent;
+    border: none;
+    color: #a0a0a0;
+    text-align: left;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.atelier-nav button:hover {
+    color: #fff;
+    background-color: #333;
+}
+
+.atelier-nav button.active {
+    color: #fff;
+    background-color: #ff3f6c; /* Myntra-style Pink */
+    box-shadow: 0 4px 15px rgba(255, 63, 108, 0.3);
+}
+
+/* Main Content Area */
+.atelier-main {
+    margin-left: 260px; /* Sidebar space */
+    flex: 1;
+    padding: 40px;
+    background: #ffffff;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .atelier-sidebar {
+        width: 80px;
+        padding: 20px 10px;
+    }
+    .atelier-sidebar h1 {
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    .atelier-main {
+        margin-left: 80px;
+    }
+    .atelier-nav button {
+        font-size: 10px;
+        padding: 10px 5px;
+        text-align: center;
+    }
+}
+.atelier-container {
+    display: flex;
+    height: 100vh; /* Poori screen occupy karega */
+    overflow: hidden;
+}
+
+.atelier-sidebar {
+    width: 250px;
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.atelier-main {
+    flex: 1; /* Bacha hua saara space legi */
+    overflow-y: auto; /* Sirf content area scroll hoga */
+    background: #f4f4f4;
+}
