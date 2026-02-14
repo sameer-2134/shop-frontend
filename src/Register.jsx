@@ -62,7 +62,35 @@ const Register = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // --- ✅ FINAL INTEGRATED FORM LOGIC (FIXED WITH ENV) ---
+    // --- ✅ GOOGLE LOGIN LOGIC ---
+    const handleGoogleSuccess = async (credentialResponse) => {
+        const baseURL = import.meta.env.VITE_API_URL;
+        setLoading(true);
+        try {
+            const res = await axios.post(`${baseURL}/api/auth/google-login`, {
+                token: credentialResponse.credential
+            });
+
+            if (res.data.success) {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+                
+                setUserName(res.data.user.name.split(' ')[0]); // Pehla naam dikhane ke liye
+                setShowWelcome(true);
+
+                setTimeout(() => {
+                    navigate('/gallery');
+                }, 3500);
+            }
+        } catch (err) {
+            console.error("Google Login Error:", err.response?.data);
+            toast.error(err.response?.data?.message || "Google Login Failed! ❌");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- ✅ MANUAL FORM LOGIC ---
     const handleRegister = async (e) => {
         e.preventDefault(); 
         setLoading(true);
@@ -74,7 +102,6 @@ const Register = () => {
             phone: "" 
         };
 
-        // ✅ AB YE DYNAMIC HAI: .env file se URL uthayega
         const baseURL = import.meta.env.VITE_API_URL;
 
         try {
@@ -136,7 +163,11 @@ const Register = () => {
                             </div>
 
                             <div className="google-section-3d">
-                                <GoogleLogin onSuccess={() => toast.info("Google Login Coming Soon")} onError={() => console.log("GSI Error")} />
+                                {/* ✅ FIXED GOOGLE LOGIN BUTTON */}
+                                <GoogleLogin 
+                                    onSuccess={handleGoogleSuccess} 
+                                    onError={() => toast.error("Google Auth Failed! ❌")} 
+                                />
                             </div>
 
                             <div className="sl-divider-ultra"><span>OR</span></div>
