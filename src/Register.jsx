@@ -38,11 +38,9 @@ const Register = () => {
     const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '' });
     const [loading, setLoading] = useState(false);
     
-    // --- NEW STATES FOR ANIMATION ---
     const [showWelcome, setShowWelcome] = useState(false);
     const [userName, setUserName] = useState("");
 
-    // --- 3D INTERACTIVE LOGIC ---
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const mouseXSpring = useSpring(x);
@@ -64,7 +62,7 @@ const Register = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // --- ✅ FINAL INTEGRATED FORM LOGIC ---
+    // --- ✅ FINAL INTEGRATED FORM LOGIC (FIXED) ---
     const handleRegister = async (e) => {
         e.preventDefault(); 
         setLoading(true);
@@ -76,9 +74,8 @@ const Register = () => {
             phone: "" 
         };
 
-        const baseURL = window.location.hostname === "localhost" 
-            ? 'http://localhost:5000' 
-            : 'https://your-api-link.com';
+        // FIXED: Direct Railway URL
+        const baseURL = 'https://shop-backend-production-9f14.up.railway.app';
 
         try {
             const response = await axios.post(`${baseURL}/api/auth/register`, dataToSend, {
@@ -86,17 +83,14 @@ const Register = () => {
             });
             
             if (response.data.success) {
-                // 1. Token & User Storage
                 if (response.data.token) {
                     localStorage.setItem('token', response.data.token);
                     localStorage.setItem('user', JSON.stringify(response.data.user));
                 }
 
-                // 2. Trigger Premium Welcome Message
                 setUserName(formData.firstName);
                 setShowWelcome(true);
 
-                // 3. Delayed Navigation for Animation Experience
                 setTimeout(() => {
                     navigate('/gallery'); 
                 }, 3500);
@@ -111,7 +105,6 @@ const Register = () => {
 
     return (
         <>
-            {/* Modal Overlay sits on top of everything */}
             <WelcomeModal show={showWelcome} name={userName} />
 
             <div className="ultra-wrapper">
@@ -123,7 +116,6 @@ const Register = () => {
                     style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
                     className="ultra-card"
                 >
-                    {/* Left Side */}
                     <div className="ultra-left" style={{ transform: "translateZ(50px)" }}>
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="floating-header">
                             <div className="sl-icon">S<span>L</span></div>
@@ -136,7 +128,6 @@ const Register = () => {
                         </motion.div>
                     </div>
 
-                    {/* Right Side */}
                     <div className="ultra-right">
                         <motion.div className="form-inner-3d" style={{ transform: "translateZ(100px)" }}>
                             <div className="form-head">
