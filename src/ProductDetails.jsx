@@ -4,7 +4,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingBag, Heart, ShieldCheck, Truck, 
-  ChevronRight, Tag, RotateCcw, MapPin, X, Zap 
+  ChevronRight, Tag, RotateCcw, MapPin, X, Zap, CheckCircle2 
 } from 'lucide-react';
 import { useCart } from './CartContext'; 
 import ProductImageZoom from './ProductImageZoom'; 
@@ -18,17 +18,31 @@ const ProductDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // Selection States
     const [selectedSize, setSelectedSize] = useState(null);
     const [selectedColor, setSelectedColor] = useState(null);
     const [pincode, setPincode] = useState('');
     const [relatedProducts, setRelatedProducts] = useState([]);
-
-    // Selection Modal State
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
-    
-    // ✅ Production-ready API URL
+    const [showToast, setShowToast] = useState(false);
+    const [toastMsg, setToastMsg] = useState('');
+
     const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+    // Helper to get full Image URL (Fixed for Arrays)
+    const getFullUrl = (img) => {
+        if (!img) return "https://placehold.co/600x800?text=Premium+Piece";
+        const cleanPath = img.replace(/\\/g, '/');
+        return cleanPath.startsWith('http') ? cleanPath : `${API_BASE_URL}/${cleanPath}`;
+    };
+
+    useEffect(() => {
+        if (isSelectionOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [isSelectionOpen]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -38,9 +52,13 @@ const ProductDetails = () => {
                 if (res.data.success) {
                     const currentProduct = res.data.product;
                     setProduct(currentProduct);
-                    if (currentProduct.images?.length > 0) setMainImage(currentProduct.images[0]);
                     
-                    // Logic to fetch related products
+                    // ✅ Fixed: Initialize main image from the images array
+                    if (currentProduct.images && currentProduct.images.length > 0) {
+                        setMainImage(currentProduct.images[0]);
+                    }
+                    
+                    // Fetch Related Products logic
                     const queryParam = currentProduct.subCategory 
                         ? `subCategory=${encodeURIComponent(currentProduct.subCategory)}` 
                         : `category=${encodeURIComponent(currentProduct.category)}`;
@@ -54,33 +72,45 @@ const ProductDetails = () => {
                 setError("Product not found.");
             } finally {
                 setLoading(false);
+                setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+                }, 100);
             }
         };
         if (id) fetchProduct();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [id, API_BASE_URL]);
 
+    const triggerToast = (msg) => {
+        setToastMsg(msg);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+    };
+
     const handleInitialAdd = () => {
-        if ((product.sizes?.length > 0) || (product.colors?.length > 0)) {
+        const hasSizes = product?.sizes?.length > 0;
+        const hasColors = product?.colors?.length > 0;
+
+        if ((hasSizes && !selectedSize) || (hasColors && !selectedColor)) {
             setIsSelectionOpen(true);
         } else {
-            addToCart({ ...product });
+            addToCart({ ...product, size: selectedSize, color: selectedColor });
+            triggerToast("Added to your bag successfully!");
         }
     };
 
     const finalAddToCart = () => {
-        if (product.colors?.length > 0 && !selectedColor) return;
-        if (product.sizes?.length > 0 && !selectedSize) return;
+        if (product.colors?.length > 0 && !selectedColor) {
+            triggerToast("Please choose a color first");
+            return;
+        }
+        if (product.sizes?.length > 0 && !selectedSize) {
+            triggerToast("Please select your size");
+            return;
+        }
 
-        addToCart({ ...product, selectedSize, selectedColor });
+        addToCart({ ...product, size: selectedSize, color: selectedColor });
         setIsSelectionOpen(false);
-    };
-
-    const getFullUrl = (img) => {
-        if (!img) return "https://placehold.co/600x800?text=Premium+Piece";
-        // Fixing backslashes for windows-based paths and ensuring correct URL
-        const cleanPath = img.replace(/\\/g, '/');
-        return cleanPath.startsWith('http') ? cleanPath : `${API_BASE_URL}/${cleanPath}`;
+        triggerToast("Added to your bag!");
     };
 
     if (loading) return <div className="pd-loader"><div className="loader-ring"></div><p>CURATING EXPERIENCE...</p></div>;
@@ -88,22 +118,44 @@ const ProductDetails = () => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pd-wrapper">
+            
+            <AnimatePresence>
+                {showToast && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        exit={{ opacity: 0, y: 20 }}
+                        className="pd-toast"
+                    >
+                        <CheckCircle2 size={18} /> {toastMsg}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="pd-container">
-                {/* LEFT: GALLERY */}
                 <div className="pd-gallery-section">
                     <div className="pd-thumbnails">
-                        {product.images?.map((img, index) => (
-                            <div key={index} className={`pd-thumb-item ${mainImage === img ? 'active' : ''}`} onMouseEnter={() => setMainImage(img)}>
-                                <img src={getFullUrl(img)} alt={`Thumbnail ${index}`} />
-                            </div>
-                        ))}
+                        {/* ✅ Fixed: Mapping through images array */}
+                        {product.images && product.images.length > 0 ? (
+                            product.images.map((img, index) => (
+                                <div 
+                                    key={index} 
+                                    className={`pd-thumb-item ${mainImage === img ? 'active' : ''}`} 
+                                    onMouseEnter={() => setMainImage(img)}
+                                >
+                                    <img src={getFullUrl(img)} alt={`Thumbnail ${index}`} />
+                                </div>
+                            ))
+                        ) : (
+                             <div className="pd-thumb-item active"><img src={getFullUrl('')} alt="Placeholder" /></div>
+                        )}
                     </div>
                     <div className="pd-main-viewer">
+                        {/* ✅ Main Image Display */}
                         <ProductImageZoom src={getFullUrl(mainImage)} />
                     </div>
                 </div>
 
-                {/* RIGHT: DETAILS */}
                 <div className="pd-details-section">
                     <nav className="pd-breadcrumb">
                         <Link to="/">Home</Link> <ChevronRight size={12}/> 
@@ -122,7 +174,6 @@ const ProductDetails = () => {
                         <p className="tax-info">inclusive of all taxes</p>
                     </div>
 
-                    {/* SIZE SELECTOR */}
                     {product.sizes && product.sizes.length > 0 && (
                         <div className="pd-size-section">
                             <div className="size-header">
@@ -161,7 +212,10 @@ const ProductDetails = () => {
                         <button className="pd-btn-primary" onClick={handleInitialAdd}>
                             <ShoppingBag size={20} /> ADD TO BAG
                         </button>
-                        <button className="pd-btn-secondary" onClick={() => addToWishlist(product)}>
+                        <button className="pd-btn-secondary" onClick={() => {
+                            addToWishlist(product);
+                            triggerToast("Saved to wishlist!");
+                        }}>
                             <Heart size={22} />
                         </button>
                     </div>
@@ -179,7 +233,7 @@ const ProductDetails = () => {
                 </div>
             </div>
 
-            {/* RELATED PRODUCTS */}
+            {/* Related Products Section */}
             {relatedProducts.length > 0 && (
                 <div className="related-section">
                     <div className="section-divider"><span>EXPLORE SIMILAR PIECES</span></div>
@@ -187,7 +241,8 @@ const ProductDetails = () => {
                         {relatedProducts.map(p => (
                             <Link to={`/product/${p._id}`} key={p._id} className="related-card">
                                 <div className="related-img-wrapper">
-                                    <img src={getFullUrl(p.images[0])} alt={p.name} />
+                                    {/* ✅ Fixed: Show first image from related product array */}
+                                    <img src={getFullUrl(p.images ? p.images[0] : '')} alt={p.name} />
                                 </div>
                                 <div className="related-info">
                                     <span className="related-brand">{p.brand}</span>
@@ -202,10 +257,10 @@ const ProductDetails = () => {
                 </div>
             )}
 
-            {/* SELECTION POPUP DRAWER */}
+            {/* Selection Drawer */}
             <AnimatePresence>
                 {isSelectionOpen && (
-                    <>
+                    <div className="drawer-portal-wrapper">
                         <motion.div 
                             className="selection-overlay" 
                             initial={{ opacity: 0 }} 
@@ -218,7 +273,7 @@ const ProductDetails = () => {
                             initial={{ y: "100%" }}
                             animate={{ y: 0 }}
                             exit={{ y: "100%" }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            transition={{ type: "tween", duration: 0.3 }}
                         >
                             <div className="drawer-header">
                                 <h2>Select color and size</h2>
@@ -259,19 +314,15 @@ const ProductDetails = () => {
                                                 </button>
                                             ))}
                                         </div>
-                                        <p className="delivery-tip"><Zap size={14} className="zap-icon-yellow"/> Available for fast delivery</p>
                                     </div>
                                 )}
 
-                                <button 
-                                    className={`drawer-add-btn ${(product.sizes?.length > 0 && !selectedSize) ? 'disabled' : ''}`} 
-                                    onClick={finalAddToCart}
-                                >
+                                <button className="drawer-add-btn" onClick={finalAddToCart}>
                                     Add To Bag
                                 </button>
                             </div>
                         </motion.div>
-                    </>
+                    </div>
                 )}
             </AnimatePresence>
         </motion.div>

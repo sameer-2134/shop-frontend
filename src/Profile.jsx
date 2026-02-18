@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { toast } from 'react-hot-toast'; // Consistent with other components
+import { toast } from 'react-hot-toast';
 import { FiUser, FiMail, FiPhone, FiEdit3, FiCheckCircle, FiLoader } from 'react-icons/fi';
 import './Profile.css';
 
@@ -17,7 +17,7 @@ const Profile = () => {
         userId: user?.id || user?._id 
     });
 
-    // ✅ Production-ready API URL
+    // API URL from .env
     const API_BASE_URL = import.meta.env.VITE_API_URL;
 
     const handleUpdate = async () => {
@@ -28,10 +28,11 @@ const Profile = () => {
 
         setLoading(true);
         try {
+            // ✅ FIXED: Changed /api/users/ to /api/auth/ to match your backend
             const res = await axios.put(
-                `${API_BASE_URL}/api/users/update-profile`, 
+                `${API_BASE_URL}/api/auth/update-profile`, 
                 formData,
-                { headers: { Authorization: `Bearer ${token}` } } // Security check
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             if (res.data.success) {

@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google'; 
-import { Toaster } from 'react-hot-toast'; // ✅ Added for Gallery notifications
-import { CartProvider } from './CartContext'; // ✅ Added Cart Context
+import { Toaster } from 'react-hot-toast';
+import { CartProvider } from './CartContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+// --- COMPONENTS ---
 import Navbar from './Navbar';
 import Register from './Register';
 import Login from './Login';
@@ -22,31 +25,31 @@ import Wishlist from './Wishlist';
 import ScrollToTop from "./ScrollToTop";
 import Orders from './Orders';
 
-// Premium Admin Dashboard Imports
+// --- ADMIN DASHBOARD ---
 import AdminLayout from './AdminLayout'; 
 import AdminCustomers from './AdminCustomers'; 
 import AdminStats from './AdminStats';
 import AdminInventory from './AdminInventory'; 
 import AdminOrders from './pages/Admin/AdminOrders'; 
 
-// Toastify (Old one, kept for other parts of app)
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-const Layout = ({ children }) => {
+const Layout = ({ children, token }) => {
   const location = useLocation();
-  const token = localStorage.getItem('token');
-  const authPaths = ['/register', '/login', '/forgot-password'];
   
-  const noNavPaths = [...authPaths, '/atelier', '/admin-dashboard']; 
-  const shouldShow = token && !noNavPaths.some(path => location.pathname.startsWith(path));
+  // Routes jahan Navbar/Footer nahi dikhana
+  const noNavPaths = ['/register', '/login', '/forgot-password', '/atelier', '/admin-dashboard']; 
+  
+  const shouldShow = useMemo(() => {
+    // Agar path noNavPaths mein hai toh kabhi mat dikhao
+    const isExcludedPath = noNavPaths.some(path => location.pathname.startsWith(path));
+    // Dikhana tabhi hai jab token ho aur path excluded na ho
+    return token && !isExcludedPath;
+  }, [token, location.pathname]);
 
   return (
     <>
       <ScrollToTop />
-      {/* Dono toaster rakhe hain taaki purana code na fate */}
-      <ToastContainer position="top-right" autoClose={2000} limit={1} pauseOnFocusLoss={false} />
-      <Toaster position="top-right" reverseOrder={false} /> 
+      <ToastContainer position="top-right" autoClose={2000} limit={1} />
+      <Toaster position="top-right" /> 
       
       {shouldShow && <Navbar />}
       <main style={{ minHeight: '80vh' }}>{children}</main>
@@ -56,35 +59,38 @@ const Layout = ({ children }) => {
 };
 
 function App() {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')));
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+
+  // ✅ Client ID ab .env se uthayega, fallback ke liye teri purani ID rakhi hai
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "280292727223-rlh3i44omc3hsrp5ib643dul2dulnqj8.apps.googleusercontent.com";
 
   useEffect(() => {
     const handleStorageChange = () => {
       setUser(JSON.parse(localStorage.getItem('user')));
       setToken(localStorage.getItem('token'));
     };
+    // Sync across tabs and manual dispatch
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const isAdmin = user && user.email === 'sameermansuri8912@gmail.com';
+  const isAdmin = useMemo(() => user?.email === 'sameermansuri8912@gmail.com', [user]);
   const isAuthenticated = !!token;
 
   return (
-    <GoogleOAuthProvider clientId="280292727223-rlh3i44omc3hsrp5ib643dul2dulnqj8.apps.googleusercontent.com">
-      {/* ✅ CartProvider wrapped around everything */}
+    <GoogleOAuthProvider clientId={googleClientId}>
       <CartProvider> 
         <Router>
-          <Layout>
+          <Layout token={token}>
             <Routes>
-              {/* Public & Auth Routes */}
+              {/* AUTH ROUTES */}
               <Route path="/" element={isAuthenticated ? <Navigate to="/gallery" /> : <Register />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<Login setUser={setUser} setToken={setToken} />} />
+              <Route path="/register" element={isAuthenticated ? <Navigate to="/gallery" /> : <Register />} />
+              <Route path="/login" element={isAuthenticated ? <Navigate to="/gallery" /> : <Login setUser={setUser} setToken={setToken} />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* User Protected Routes */}
+              {/* PROTECTED USER ROUTES */}
               <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
               <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
               <Route path="/product/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
@@ -94,9 +100,9 @@ function App() {
               <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
               <Route path="/my-orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
               
+              {/* ADMIN SPECIAL ROUTES */}
               <Route path="/atelier/*" element={isAdmin ? <ProtectedRoute adminOnly={true}><Atelier /></ProtectedRoute> : <Navigate to="/" />} />
               
-              {/* Admin Dashboard */}
               <Route path="/admin-dashboard" element={isAdmin ? <AdminLayout /> : <Navigate to="/" />}>
                 <Route index element={<AdminStats />} />
                 <Route path="stats" element={<AdminStats />} />
@@ -106,6 +112,7 @@ function App() {
                 <Route path="users" element={<AdminCustomers />} /> 
               </Route>
 
+              {/* 404 Redirect */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Layout>

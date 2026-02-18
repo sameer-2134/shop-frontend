@@ -2,40 +2,24 @@ import React, { useState } from 'react';
 import { useCart } from './CartContext';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast, Toaster } from 'react-hot-toast'; 
+import { ShoppingBag, X } from 'lucide-react';
 import './Wishlist.css';
 
 const Wishlist = () => {
     const { wishlist, removeFromWishlist, addToCart } = useCart();
-    // Tracking selected sizes for each product individually
     const [selectedSizes, setSelectedSizes] = useState({});
-    // Local state to shake/highlight the size picker if user forgets
     const [shakeId, setShakeId] = useState(null);
 
-    // --- LOGIC: ADD TO BAG WITH VALIDATION ---
     const handleMoveToBag = (item) => {
         const itemId = item._id || item.productId?._id;
         const hasSizes = item.sizes && item.sizes.length > 0 && !item.sizes.includes("Free Size");
 
-        // Validation: Agar size select nahi kiya
         if (hasSizes && !selectedSizes[itemId]) {
-            setShakeId(itemId); // Trigger visual hint
-            toast.error("Pehle size select karein!", {
-                icon: '📏',
-                position: "bottom-center",
-                style: {
-                    borderRadius: '10px',
-                    background: '#1e293b',
-                    color: '#fff',
-                }
-            });
-            
-            // 1 second baad shake effect nikal do
+            setShakeId(itemId);
             setTimeout(() => setShakeId(null), 500);
             return;
         }
 
-        // Agar validation pass ho gayi
         const finalItem = {
             ...item,
             selectedSize: selectedSizes[itemId] || "Free Size"
@@ -43,7 +27,6 @@ const Wishlist = () => {
         
         addToCart(finalItem);
         removeFromWishlist(itemId);
-        toast.success(`${item.name} Bag mein add ho gaya!`, { position: "bottom-center" });
     };
 
     const handleSizeSelect = (itemId, size) => {
@@ -53,31 +36,32 @@ const Wishlist = () => {
         }));
     };
 
-    // Animation Variants
     const containerVariants = {
         hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+        visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
     };
 
     const cardVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 120 } },
-        exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } }
+        hidden: { opacity: 0, y: 30 },
+        visible: { opacity: 1, y: 0, transition: { type: "spring", damping: 20, stiffness: 100 } },
+        exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
     };
 
-    // Empty State UI
     if (!wishlist || wishlist.length === 0) {
         return (
             <div className="wishlist-page-wrapper">
                 <div className="wishlist-container">
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         className="empty-wishlist-v2"
                     >
-                        <h2>WISHLIST KHALI HAI</h2>
-                        <p>Apne pasandida items ko yahan save karein.</p>
-                        <Link to="/gallery" className="continue-shopping-btn">SHOP NOW</Link>
+                        <div className="empty-icon-circle">
+                            <ShoppingBag size={40} strokeWidth={1} />
+                        </div>
+                        <h2>YOUR WISHLIST IS EMPTY</h2>
+                        <p>Save your favorite items here to keep track of what you love.</p>
+                        <Link to="/gallery" className="continue-shopping-btn">EXPLORE COLLECTION</Link>
                     </motion.div>
                 </div>
             </div>
@@ -86,15 +70,14 @@ const Wishlist = () => {
 
     return (
         <div className="wishlist-page-wrapper">
-            <Toaster /> 
             <div className="wishlist-container">
                 <header className="wishlist-header">
-                    <motion.h2 
+                    <motion.div 
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                     >
-                        My Wishlist <span>({wishlist.length} Items)</span>
-                    </motion.h2>
+                        <h2>My Wishlist <span className="item-count">{wishlist.length} {wishlist.length === 1 ? 'Item' : 'Items'}</span></h2>
+                    </motion.div>
                 </header>
                 
                 <motion.div 
@@ -117,16 +100,16 @@ const Wishlist = () => {
                                     layout
                                     exit="exit"
                                 >
-                                    {/* Remove Button */}
-                                    <button className="remove-wishlist" onClick={() => removeFromWishlist(itemId)}>×</button>
+                                    <button className="remove-wishlist" onClick={() => removeFromWishlist(itemId)}>
+                                        <X size={18} />
+                                    </button>
 
-                                    {/* Image Section with Size Overlay */}
                                     <div className="wishlist-img-container">
-                                        <img src={item.images?.[0]} alt={item.name} />
+                                        <img src={item.images?.[0]} alt={item.name} loading="lazy" />
                                         
                                         {hasSizes && (
-                                            <div className={`quick-size-overlay ${shakeId === itemId ? 'force-show' : ''}`}>
-                                                <p>{isSelected ? `Size: ${isSelected}` : 'Select Size'}</p>
+                                            <div className={`quick-size-overlay ${shakeId === itemId ? 'force-show' : ''} ${isSelected ? 'has-selection' : ''}`}>
+                                                <p>{isSelected ? `Selected: ${isSelected}` : 'Select Size'}</p>
                                                 <div className="mini-size-grid">
                                                     {item.sizes.map(size => (
                                                         <button 
@@ -145,19 +128,18 @@ const Wishlist = () => {
                                         )}
                                     </div>
 
-                                    {/* Info Section */}
                                     <div className="wishlist-info">
                                         <span className="wishlist-brand">{item.brand || 'SHOPLANE'}</span>
                                         <h4 className="wishlist-name">{item.name}</h4>
                                         <div className="price-box">
-                                            <span className="current-price">₹{item.price}</span>
+                                            <span className="current-price">₹{item.price.toLocaleString()}</span>
                                         </div>
                                         
                                         <button 
                                             className={`move-to-bag-btn ${hasSizes && !isSelected ? 'needs-selection' : ''}`}
                                             onClick={() => handleMoveToBag(item)}
                                         >
-                                            {hasSizes && !isSelected ? 'SELECT SIZE' : 'MOVE TO BAG'}
+                                            {hasSizes && !isSelected ? 'CHOOSE SIZE' : 'MOVE TO BAG'}
                                         </button>
                                     </div>
                                 </motion.div>

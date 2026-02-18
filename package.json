@@ -15,7 +15,7 @@
     "axios": "^1.13.4",
     "canvas-confetti": "^1.9.4",
     "cors": "^2.8.6",
-    "framer-motion": "^12.34.0",
+    "framer-motion": "^12.34.1",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "jwt-decode": "^4.0.0",

@@ -609,3 +609,66 @@
     background: #ccc;
     cursor: not-allowed;
 }
+/* Page Wrapper Fix */
+.pd-wrapper {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Toast fix: Taaki ye hamesha sabse upar rahe */
+.pd-toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999 !important; /* Extremely high z-index */
+    background: #1a1a1a;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* Selection Drawer Mobile Fixes */
+.selection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 5000;
+}
+
+.selection-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    z-index: 5001;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 20px;
+    max-height: 85vh; /* Mobile par screen se bahar na jaye */
+    overflow-y: auto; /* Agar content zyada ho toh drawer ke andar scroll ho */
+}
+
+/* RELATED PRODUCTS GRID FIX FOR MOBILE */
+@media (max-width: 768px) {
+    .related-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2 items per row on mobile */
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .pd-container {
+        flex-direction: column;
+    }
+    
+    .pd-gallery-section {
+        flex-direction: column-reverse; /* Thumbnails niche aa jayenge mobile pe */
+    }
+}

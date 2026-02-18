@@ -526,3 +526,275 @@
         padding: 100px 5% 40px;
     }
 }
+:root {
+    --primary: #ff3f6c; 
+    --dark: #282c3f;
+    --text-muted: #535766;
+    --glass: rgba(255, 255, 255, 0.95);
+    --shadow-3d: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.cart-page-wrapper {
+    background: radial-gradient(circle at top, #fff, #f4f6f8);
+    min-height: 100vh;
+    padding: 140px 10% 80px;
+}
+
+/* --- Stepper (Desktop & Mobile) --- */
+.cart-stepper-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.cart-stepper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: white;
+    padding: 15px 40px;
+    border-radius: 50px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* --- Cart Card (The "No-Overlap" Logic) --- */
+.cart-card-premium {
+    background: var(--glass);
+    border-radius: 24px;
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0,0,0,0.03);
+    box-shadow: var(--shadow-3d);
+    position: relative;
+    display: flex;
+    gap: 40px; 
+    align-items: flex-start; /* Changed from center to top for better text flow */
+    transition: transform 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.cart-card-premium:hover {
+    transform: translateY(-5px);
+}
+
+.cart-img-3d-wrap {
+    flex-shrink: 0; /* Important: Image ko chota hone se rokta hai */
+    width: 140px;
+    height: 190px;
+    border-radius: 18px;
+    overflow: hidden;
+    transform: perspective(1000px) rotateY(-8deg);
+    box-shadow: 10px 10px 20px rgba(0,0,0,0.15);
+}
+
+.cart-img-3d-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-item-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Fixed: Mobile text overflow glitch */
+}
+
+.brand-label {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.product-title {
+    font-size: 18px;
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.cart-size-badge {
+    margin-bottom: 15px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.cart-size-badge span {
+    background: #000;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+
+/* --- Qty & Price Container --- */
+.qty-price-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 15px;
+    border-top: 1px dashed #eee;
+    margin-top: auto; /* Pushes to bottom of card */
+}
+
+.modern-qty-box {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 4px;
+    border: 1px solid #eee;
+}
+
+.modern-qty-box button {
+    width: 32px; height: 32px; border: none; background: white;
+    border-radius: 8px; cursor: pointer; font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.current-p { font-size: 24px; font-weight: 900; color: var(--dark); }
+
+/* --- Sidebar --- */
+.bill-card-3d {
+    background: #1e2230; 
+    padding: 35px;
+    border-radius: 35px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    color: #ffffff !important;
+}
+
+.b-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.total-amount { 
+    border-top: 1px solid rgba(255,255,255,0.15); 
+    padding-top: 25px; font-size: 24px; font-weight: 800; 
+}
+
+/* --- Remove Button --- */
+.remove-btn-3d {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #ff4d4d;
+    z-index: 5;
+}
+
+/* =============================================
+   MOBILE GLITCH REPAIR (Crucial Update)
+   ============================================= */
+@media (max-width: 768px) {
+    .cart-page-wrapper {
+        padding: 100px 4% 40px;
+    }
+
+    .cart-card-premium {
+        gap: 15px; /* Gap kam kiya mobile ke liye */
+        padding: 15px !important;
+        align-items: flex-start;
+    }
+
+    .cart-img-3d-wrap {
+        width: 100px; /* Mobile par width adjust ki taaki overlap na ho */
+        height: 140px;
+        transform: none; /* Removed rotation to save space */
+    }
+
+    .product-title {
+        font-size: 15px;
+        margin-bottom: 5px;
+        max-width: 160px; /* Fixed: Prevent title from pushing price */
+    }
+
+    .qty-price-flex {
+        flex-direction: column; /* Stacked: Qty upar, Price niche */
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .price-stack {
+        width: 100%;
+        text-align: left;
+    }
+
+    .current-p {
+        font-size: 19px; /* Mobile par price readable size */
+    }
+
+    .remove-btn-3d {
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .cart-stepper {
+        padding: 10px 20px !important;
+        gap: 8px;
+    }
+    
+    .step { font-size: 9px; }
+}
+
+/* Empty Cart Styles (Keep as is) */
+.empty-cart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    text-align: center;
+}.cart-size-badge {
+    margin-bottom: 15px;
+    font-size: 13px;
+    font-weight: 700; /* Thoda bold look ke liye */
+    color: var(--dark);
+}
+
+.cart-size-badge span {
+    background: #000000; /* Pure Black Background */
+    color: #ffffff;      /* Pure White Text */
+    padding: 3px 10px;
+    border-radius: 5px;
+    margin-left: 5px;
+    text-transform: uppercase;
+    font-size: 12px;
+    display: inline-block;
+}/* --- COMPACT QUANTITY BOX (SMALLER) --- */
+.modern-qty-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff !important; /* Box White */
+    border: 1px solid #000;
+    gap: 8px;           /* Gap kam kar diya */
+    padding: 2px 8px;   /* Padding kam karke box chota kar diya */
+    width: fit-content;
+}
+
+.modern-qty-box span {
+    color: #000000 !important; /* Number Solid Black */
+    font-weight: 700;
+    font-size: 11px;    /* Text size chota kar diya */
+    font-family: 'Syncopate', sans-serif;
+    min-width: 15px;    /* Width bhi kam kar di */
+    text-align: center;
+}
+
+.modern-qty-box button {
+    color: #000000 !important; /* Icons Black */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 10px;    /* Icons ka size chota kar diya */
+    padding: 2px;
+}
+
+.modern-qty-box button:disabled {
+    opacity: 0.2;
+}

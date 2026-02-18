@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Edit, Trash2, Search, RefreshCcw, Package, X, Save, AlertTriangle, Box } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion'; // Added Framer Motion
+import { Edit, Trash2, Search, RefreshCcw, Package, X, Save, AlertTriangle, Box, ArrowUpRight } from 'lucide-react';
 import './AdminInventory.css';
 
 const AdminInventory = () => {
@@ -13,7 +14,7 @@ const AdminInventory = () => {
 
     const baseURL = import.meta.env.VITE_API_URL;
 
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
             const res = await axios.get(`${baseURL}/api/products/all`);
@@ -25,17 +26,17 @@ const AdminInventory = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [baseURL]);
 
     useEffect(() => {
         fetchProducts();
-    }, []);
+    }, [fetchProducts]);
 
     const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this product?")) {
+        if (window.confirm("Confirm delete? This action cannot be undone.")) {
             try {
                 await axios.delete(`${baseURL}/api/products/delete/${id}`);
-                toast.success("Product removed");
+                toast.success("Product deleted successfully");
                 setProducts(prev => prev.filter(p => p._id !== id));
             } catch (err) {
                 toast.error("Delete failed");
@@ -52,7 +53,7 @@ const AdminInventory = () => {
         try {
             const res = await axios.patch(`${baseURL}/api/products/update/${editingProduct._id}`, editingProduct);
             if (res.data.success || res.status === 200) {
-                toast.success("Product updated");
+                toast.success("Product details updated");
                 setProducts(prev => prev.map(p => p._id === editingProduct._id ? editingProduct : p));
                 setIsEditModalOpen(false);
             }
@@ -61,146 +62,181 @@ const AdminInventory = () => {
         }
     };
 
-    const filteredProducts = (products || []).filter(p => 
+    const filteredProducts = products.filter(p => 
         p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
         p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const lowStockItems = products.filter(p => p.stock > 0 && p.stock < 5);
-    const outOfStockItems = products.filter(p => p.stock === 0);
+    const stats = {
+        total: products.length,
+        lowStock: products.filter(p => p.stock > 0 && p.stock < 10).length,
+        outOfStock: products.filter(p => p.stock === 0).length,
+        totalValue: products.reduce((acc, p) => acc + (p.price * p.stock), 0)
+    };
 
     return (
-        <div className="inventory-wrapper">
-            <div className="inventory-header">
-                <div className="header-text">
-                    <h2>Inventory Management</h2>
-                    <p>Track and manage your product stock levels</p>
+        <div className="inventory-container">
+            {/* Header Area */}
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inventory-header-glass"
+            >
+                <div className="header-info">
+                    <h1>Inventory Ledger</h1>
+                    <p>Manage stocks, pricing, and product visibility</p>
                 </div>
-                <div className="header-actions">
-                    <div className="search-box">
-                        <Search size={18} />
+                <div className="header-controls">
+                    <div className="premium-search">
+                        <Search size={18} className="search-icon-anim" />
                         <input 
                             type="text" 
-                            placeholder="Search brand or product..." 
+                            placeholder="Search inventory..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button onClick={fetchProducts} className="refresh-btn" title="Refresh Data">
-                        <RefreshCcw size={18} />
+                    <button onClick={fetchProducts} className="glass-refresh" disabled={loading}>
+                        <RefreshCcw size={18} className={loading ? "spin" : ""} />
                     </button>
                 </div>
+            </motion.div>
+
+            {/* Quick Stats Grid */}
+            <div className="stats-row">
+                {[
+                    { label: 'Total SKUs', value: stats.total, icon: <Box />, color: 'blue', glow: false },
+                    { label: 'Low Stock', value: stats.lowStock, icon: <AlertTriangle />, color: 'amber', glow: stats.lowStock > 0 },
+                    { label: 'Stock Out', value: stats.outOfStock, icon: <Package />, color: 'red', glow: stats.outOfStock > 0 },
+                    { label: 'Inv. Value', value: `₹${stats.totalValue.toLocaleString()}`, icon: <ArrowUpRight />, color: 'green', glow: false }
+                ].map((s, i) => (
+                    <motion.div 
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`stat-box ${s.glow ? `${s.color}-glow` : ''}`}
+                    >
+                        <div className={`stat-icon-wrapper ${s.color}`}>{s.icon}</div>
+                        <div className="stat-content">
+                            <span className="label">{s.label}</span>
+                            <span className="value">{s.value}</span>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
 
-            <div className="inventory-stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon"><Box size={20} /></div>
-                    <div className="stat-info">
-                        <span className="stat-label">Total Products</span>
-                        <span className="stat-value">{products.length}</span>
-                    </div>
-                </div>
-                <div className={`stat-card ${lowStockItems.length > 0 ? 'warning' : ''}`}>
-                    <div className="stat-icon"><AlertTriangle size={20} /></div>
-                    <div className="stat-info">
-                        <span className="stat-label">Low Stock</span>
-                        <span className="stat-value">{lowStockItems.length}</span>
-                    </div>
-                </div>
-                <div className={`stat-card ${outOfStockItems.length > 0 ? 'danger' : ''}`}>
-                    <div className="stat-icon"><Package size={20} /></div>
-                    <div className="stat-info">
-                        <span className="stat-label">Out of Stock</span>
-                        <span className="stat-value">{outOfStockItems.length}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="inventory-card">
+            {/* Main Table Card */}
+            <motion.div 
+                layout
+                className="main-table-card"
+            >
                 {loading ? (
-                    <div className="loading-state">
-                        <div className="spinner"></div>
-                        <p>Updating Ledger...</p>
+                    <div className="loading-overlay">
+                        <div className="modern-spinner"></div>
+                        <p>Syncing Live Inventory...</p>
                     </div>
                 ) : (
-                    <div className="table-responsive">
-                        <table className="inventory-table">
+                    <div className="table-wrapper">
+                        <table className="modern-table">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock Status</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>PRODUCT DETAILS</th>
+                                    <th>CATEGORY</th>
+                                    <th>PRICING</th>
+                                    <th>STOCK STATUS</th>
+                                    <th>AVAILABILITY</th>
+                                    <th>CONTROL</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredProducts.map((product) => (
-                                    <tr key={product._id}>
-                                        <td>
-                                            <div className="product-info-cell">
-                                                <div className="p-img-mini">
-                                                    {product.images?.[0] ? 
-                                                        <img src={product.images[0]} alt="" /> : 
-                                                        <Package size={16}/>
-                                                    }
+                                <AnimatePresence>
+                                    {filteredProducts.map((product) => (
+                                        <motion.tr 
+                                            key={product._id}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0, x: -20 }}
+                                            layout
+                                            className="table-row"
+                                        >
+                                            <td>
+                                                <div className="product-meta">
+                                                    <div className="product-thumb">
+                                                        {product.images?.[0] ? <img src={product.images[0]} alt="" /> : <Box size={20}/>}
+                                                    </div>
+                                                    <div className="product-desc">
+                                                        <span className="p-name">{product.name}</span>
+                                                        <span className="p-brand">{product.brand}</span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div className="p-name-main">{product.name}</div>
-                                                    <div className="p-brand-sub">{product.brand}</div>
+                                            </td>
+                                            <td>
+                                                <div className="category-stack">
+                                                    <span className="main-cat">{product.mainCategory}</span>
+                                                    <span className="sub-cat">{product.subCategory}</span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className="cat-badge">{product.mainCategory}</span>
-                                            <div className="sub-cat-text">{product.subCategory}</div>
-                                        </td>
-                                        <td>
-                                            <div className="p-price-cell">
-                                                <span className="current-price">₹{product.price}</span>
-                                                {product.originalPrice && <span className="p-mrp-sub">₹{product.originalPrice}</span>}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className={`stock-indicator ${product.stock < 5 ? 'critical' : ''}`}>
-                                                <span className="stock-num">{product.stock} left</span>
-                                                {product.stock < 5 && product.stock > 0 && <span className="restock-badge">LOW</span>}
-                                                {product.stock === 0 && <span className="oos-badge">OOS</span>}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className={`status-pill ${product.stock > 0 ? 'active' : 'oos'}`}>
-                                                {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="action-btns">
-                                                <button className="edit-btn" onClick={() => handleEditClick(product)} title="Edit">
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button className="del-btn" onClick={() => handleDelete(product._id)} title="Delete">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td>
+                                                <div className="price-stack">
+                                                    <span className="sell-price">₹{product.price}</span>
+                                                    {product.originalPrice && <span className="mrp">₹{product.originalPrice}</span>}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="stock-visual">
+                                                    <div className="stock-labels">
+                                                        <span className="stock-count">{product.stock} Units</span>
+                                                        {product.stock < 10 && product.stock > 0 && <span className="urgent-badge">REORDER</span>}
+                                                    </div>
+                                                    <div className="progress-bar-bg">
+                                                        <motion.div 
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${Math.min((product.stock / 50) * 100, 100)}%` }}
+                                                            className={`progress-fill ${product.stock < 10 ? 'low' : ''}`} 
+                                                        ></motion.div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className={`status-tag ${product.stock > 0 ? 'instock' : 'outofstock'}`}>
+                                                    {product.stock > 0 ? 'Available' : 'Unavailable'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="action-cluster">
+                                                    <button onClick={() => handleEditClick(product)} className="action-icon edit"><Edit size={16} /></button>
+                                                    <button onClick={() => handleDelete(product._id)} className="action-icon delete"><Trash2 size={16} /></button>
+                                                </div>
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </AnimatePresence>
                             </tbody>
                         </table>
                     </div>
                 )}
-            </div>
+            </motion.div>
 
+            {/* Quick Edit Modal */}
+            <AnimatePresence>
             {isEditModalOpen && editingProduct && (
-                <div className="modal-overlay">
-                    <div className="edit-modal">
-                        <div className="modal-header">
-                            <h3>Quick Edit Product</h3>
-                            <button className="close-modal" onClick={() => setIsEditModalOpen(false)}><X size={20} /></button>
+                <div className="premium-modal-overlay">
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        className="premium-modal"
+                    >
+                        <div className="modal-header-modern">
+                            <div>
+                                <h2>Edit Inventory Item</h2>
+                                <p>ID: {editingProduct._id}</p>
+                            </div>
+                            <button className="close-x" onClick={() => setIsEditModalOpen(false)}><X size={24} /></button>
                         </div>
-                        <div className="modal-body">
-                            <div className="modal-input-group">
+                        <div className="modal-form">
+                            <div className="input-field full">
                                 <label>Product Name</label>
                                 <input 
                                     type="text" 
@@ -208,8 +244,8 @@ const AdminInventory = () => {
                                     onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
                                 />
                             </div>
-                            <div className="modal-row">
-                                <div className="modal-input-group">
+                            <div className="input-row">
+                                <div className="input-field">
                                     <label>Price (₹)</label>
                                     <input 
                                         type="number" 
@@ -217,8 +253,8 @@ const AdminInventory = () => {
                                         onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
                                     />
                                 </div>
-                                <div className="modal-input-group">
-                                    <label>Stock Quantity</label>
+                                <div className="input-field">
+                                    <label>Current Stock</label>
                                     <input 
                                         type="number" 
                                         value={editingProduct.stock} 
@@ -227,15 +263,16 @@ const AdminInventory = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="modal-footer">
-                            <button className="cancel-btn" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
-                            <button className="save-btn" onClick={handleUpdate}>
-                                <Save size={16} /> Save Changes
+                        <div className="modal-actions-modern">
+                            <button className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>Discard</button>
+                            <button className="btn-primary" onClick={handleUpdate}>
+                                <Save size={18} /> Update Ledger
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
+            </AnimatePresence>
         </div>
     );
 };

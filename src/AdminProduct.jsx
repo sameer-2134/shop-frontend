@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { 
@@ -54,7 +54,6 @@ const AdminProduct = () => {
     const getAvailableSizes = () => {
         const cat = (formData.category || "").toLowerCase();
         const subCat = (formData.subCategory || "").toLowerCase();
-
         if (cat === 'footwear') return ['6', '7', '8', '9', '10', '11'];
         if (subCat === 'jeans' || subCat === 'trousers') return ['28', '30', '32', '34', '36', '38'];
         if (formData.section === 'KIDS' && cat === 'clothing') return ['2-3Y', '3-4Y', '5-6Y', '7-8Y', '9-10Y'];
@@ -103,76 +102,16 @@ const AdminProduct = () => {
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
         const newPreviews = files.map(file => URL.createObjectURL(file));
-        setFormData({ 
-            ...formData, 
-            images: [...formData.images, ...files], 
-            imageUrl: '' 
-        }); 
+        setFormData(prev => ({ ...prev, images: [...prev.images, ...files] })); 
         setPreviews(prev => [...prev, ...newPreviews]);
     };
 
     const removeImage = (index) => {
         setPreviews(previews.filter((_, i) => i !== index));
-        setFormData({...formData, images: formData.images.filter((_, i) => i !== index)});
-    };
-
-    const handleSubmit = async (e) => {
-        if (e) e.preventDefault();
-        setLoading(true);
-        try {
-            if (uploadMode === 'single') {
-                const data = new FormData();
-                const finalSizes = formData.sizes.length > 0 ? formData.sizes : (getAvailableSizes().length === 0 ? ["Free Size"] : []);
-
-                if (finalSizes.length === 0 && getAvailableSizes().length > 0) {
-                    toast.warn("Please select at least one size");
-                    setLoading(false);
-                    return;
-                }
-
-                Object.keys(formData).forEach(key => {
-                    if (key === 'images') {
-                        formData.images.forEach(img => data.append('images', img));
-                    } else if (key === 'sizes') {
-                        data.append('sizes', JSON.stringify(finalSizes));
-                    } else if (key === 'colors') {
-                        data.append('colors', JSON.stringify(formData.colors));
-                    } else if (key === 'imageUrl') {
-                        if (formData.imageUrl) data.append('externalImageUrls', formData.imageUrl);
-                    } else {
-                        data.append(key, formData[key]);
-                    }
-                });
-                
-                const res = await axios.post(`${baseURL}/api/products/add`, data);
-                if (res.data.success) {
-                    toast.success("Product Authorized! 🚀");
-                    resetForm();
-                }
-            } else {
-                let productsArray = [];
-                const trimmedText = bulkText.trim();
-                if (trimmedText.startsWith('[') || trimmedText.startsWith('{')) {
-                    productsArray = JSON.parse(trimmedText);
-                } else {
-                    const rows = trimmedText.split('\n');
-                    productsArray = rows.map(row => {
-                        const [brand, name, price, originalPrice, stock, section, category, subCategory, imageUrl, description, sizesStr] = row.split(',').map(s => s?.trim());
-                        const bulkSizes = sizesStr ? sizesStr.split('|') : ["Free Size"];
-                        return { brand, name, price, originalPrice, stock, section, category, subCategory, images: [imageUrl], description, sizes: bulkSizes };
-                    });
-                }
-                const res = await axios.post(`${baseURL}/api/products/bulk-add`, productsArray);
-                if (res.data.success) {
-                    toast.success("Bulk Import Success!");
-                    setBulkText("");
-                }
-            }
-        } catch (err) {
-            toast.error(err.response?.data?.message || "Check Data Format");
-        } finally {
-            setLoading(false);
-        }
+        setFormData(prev => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+        }));
     };
 
     const resetForm = () => {
@@ -182,6 +121,104 @@ const AdminProduct = () => {
             images: [], sizes: [], colors: [], imageUrl: '' 
         });
         setPreviews([]);
+        setBulkText("");
+    };
+
+    const handleSubmit = async (e) => {
+        if (e) e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (uploadMode === 'single') {
+                const data = new FormData();
+                
+                // Final size validation
+                const finalSizes = formData.sizes.length > 0 
+                    ? formData.sizes 
+                    : (getAvailableSizes().length === 0 ? ["Free Size"] : []);
+
+                if (finalSizes.length === 0 && getAvailableSizes().length > 0) {
+                    toast.warn("Please select at least one size");
+                    setLoading(false);
+                    return;
+                }
+
+                // Append Fields
+                data.append('name', formData.name);
+                data.append('brand', formData.brand);
+                data.append('price', formData.price);
+                data.append('originalPrice', formData.originalPrice || formData.price);
+                data.append('stock', formData.stock);
+                data.append('description', formData.description);
+                data.append('section', formData.section);
+                data.append('category', formData.category);
+                data.append('subCategory', formData.subCategory);
+                
+                // Append Colors & Sizes as JSON
+                data.append('sizes', JSON.stringify(finalSizes));
+                data.append('colors', JSON.stringify(formData.colors));
+
+                // Append Binary Images
+                formData.images.forEach(img => {
+                    data.append('images', img);
+                });
+
+                // Append External Image URLs as a JSON array (Matches Controller)
+                if (formData.imageUrl) {
+                    const urlArray = formData.imageUrl.split(',').map(u => u.trim()).filter(u => u);
+                    data.append('externalImageUrls', JSON.stringify(urlArray));
+                }
+
+                const res = await axios.post(`${baseURL}/api/products/add`, data);
+                if (res.data.success) {
+                    toast.success("Asset Authorized! Product Listed. 🚀");
+                    resetForm();
+                }
+            } else {
+                // ✅ FIXED BULK MODE: Ensuring images is always an array
+                let productsArray = [];
+                const trimmedText = bulkText.trim();
+
+                if (trimmedText.startsWith('[') || trimmedText.startsWith('{')) {
+                    productsArray = JSON.parse(trimmedText).map(p => ({
+                        ...p,
+                        images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : [])
+                    }));
+                } else {
+                    const rows = trimmedText.split('\n');
+                    productsArray = rows.map(row => {
+                        const [brand, name, price, originalPrice, stock, section, category, subCategory, imageUrl, description, sizesStr] = row.split(',').map(s => s?.trim());
+                        
+                        return {
+                            brand,
+                            name,
+                            price: Number(price),
+                            originalPrice: Number(originalPrice || price),
+                            stock: Number(stock) || 0,
+                            section: section?.toLowerCase(),
+                            category: category?.toLowerCase(),
+                            subCategory: subCategory?.toLowerCase(),
+                            // Wrap image in array for new schema
+                            images: imageUrl ? imageUrl.split('|').map(url => url.trim()) : [], 
+                            description: description || "No description available",
+                            sizes: sizesStr ? sizesStr.split('|').map(s => s.trim()) : ["Free Size"],
+                            colors: []
+                        };
+                    });
+                }
+
+                const res = await axios.post(`${baseURL}/api/products/bulk-add`, productsArray);
+                if (res.data.success) {
+                    toast.success(`Bulk Sync Complete! ${res.data.count} items added.`);
+                    resetForm();
+                }
+            }
+        } catch (err) {
+            console.error("Upload Error:", err);
+            toast.error(err.response?.data?.message || "Format Error: Check inputs");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -291,8 +328,8 @@ const AdminProduct = () => {
                             )}
 
                             <div className="ap-input-group">
-                                <label><ImageIcon size={14} /> Media Assets</label>
-                                <input type="file" multiple onChange={handleImageChange} accept="image/*" />
+                                <label><ImageIcon size={14} /> Media Assets (Choose Files OR Paste URLs)</label>
+                                <input type="file" multiple onChange={handleImageChange} accept="image/*" className="file-input-custom" />
                                 <div style={{marginTop:'10px'}}>
                                     <input type="text" name="imageUrl" placeholder="External URL(s) separate by comma..." value={formData.imageUrl} onChange={handleChange} />
                                 </div>
@@ -310,19 +347,26 @@ const AdminProduct = () => {
                         </div>
                     ) : (
                         <div className="ap-bulk-section">
-                            <div className="bulk-info">CSV format: Brand, Name, Price, MRP, Stock, Section, Category, SubCategory, ImageURL, Description, Sizes(split by |)</div>
-                            <textarea className="ap-bulk-area" value={bulkText} onChange={(e) => setBulkText(e.target.value)} placeholder='NIKE, Zoom Sneakers, 5000, 8000, 10, MEN, Footwear, Sneakers, http://img.com, Great shoes, 8|9|10' />
+                            <div className="bulk-info">
+                                <strong>CSV Header:</strong> Brand, Name, Price, MRP, Stock, Section, Category, SubCategory, ImageURL, Description, Sizes (use | to split)
+                            </div>
+                            <textarea 
+                                className="ap-bulk-area" 
+                                value={bulkText} 
+                                onChange={(e) => setBulkText(e.target.value)} 
+                                placeholder='NIKE, Zoom Sneakers, 5000, 8000, 10, MEN, Footwear, Sneakers, http://img1.com|http://img2.com, Great shoes, 8|9|10' 
+                            />
                         </div>
                     )}
 
                     <button className={`ap-submit-btn ${loading ? 'loading' : ''}`} onClick={handleSubmit} disabled={loading}>
-                        {loading ? <div className="loader-spinner"></div> : <><PlusCircle size={18} /> Publish Product</>}
+                        {loading ? <div className="loader-spinner"></div> : <><PlusCircle size={18} /> Publish Asset</>}
                     </button>
                 </div>
 
                 <div className="ap-preview-section">
                     <div className="preview-card-sticky">
-                        <div className="preview-label">Live Preview</div>
+                        <div className="preview-label">Live Preview (Mobile View)</div>
                         <div className="preview-img-container">
                             {previews.length > 0 ? <img src={previews[0]} alt="Preview" /> : <div className="preview-placeholder"><ImageIcon size={48} /></div>}
                         </div>
@@ -335,7 +379,7 @@ const AdminProduct = () => {
                             </div>
                             <div className="p-variants">
                                 {formData.colors.length > 0 && <p>Colors: {formData.colors.join(', ')}</p>}
-                                {formData.sizes.length > 0 && <p>Sizes: {formData.sizes.join(', ')}</p>}
+                                {formData.sizes.length > 0 ? <p>Sizes: {formData.sizes.join(', ')}</p> : <p>Size: Free Size</p>}
                             </div>
                         </div>
                     </div>

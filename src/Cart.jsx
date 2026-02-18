@@ -14,9 +14,7 @@ const Cart = () => {
 
     const getFullUrl = (img) => {
         if (!img) return "https://placehold.co/100x150?text=No+Image";
-        // Agar image path 'http' se shuru ho raha hai toh wo Cloudinary URL hai
         if (img.startsWith('http')) return img;
-        // Warna backend path hai
         return `${API_BASE_URL}/${img.replace(/\\/g, '/')}`;
     };
 
@@ -48,7 +46,6 @@ const Cart = () => {
 
     return (
         <div className="cart-page-wrapper">
-            {/* Minimalist Stepper */}
             <div className="cart-stepper-container">
                 <div className="cart-stepper">
                     <span className="step active">BAG</span>
@@ -60,19 +57,18 @@ const Cart = () => {
             </div>
 
             <div className="cart-content-container">
-                {/* Left Side: Items List */}
                 <div className="cart-items-section">
                     <AnimatePresence mode="popLayout">
                         {cart.map((item) => (
                             <motion.div 
-                                key={item._id}
+                                key={`${item._id}-${item.size}`} // Updated key to handle same product with diff sizes
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 className="cart-card-premium"
                             >
-                                <button className="remove-btn-3d" onClick={() => removeFromCart(item._id)}>
+                                <button className="remove-btn-3d" onClick={() => removeFromCart(item._id, item.size)}>
                                     <FiTrash2 />
                                 </button>
 
@@ -85,17 +81,21 @@ const Cart = () => {
                                         <h3 className="brand-label">{item.brand || 'ShopLane Premium'}</h3>
                                         <h4 className="product-title">{item.name}</h4>
                                         
+                                        {/* Highlighted Size Section */}
+                                        <div className="cart-size-badge">
+                                            SIZE: <span>{item.size || 'N/A'}</span>
+                                        </div>
+
                                         <div className="qty-price-flex">
                                             <div className="modern-qty-box">
-                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1)} disabled={item.quantity <= 1}><FiMinus /></button>
+                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1, item.size)} disabled={item.quantity <= 1}><FiMinus /></button>
                                                 <span>{item.quantity || 1}</span>
-                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1)}><FiPlus /></button>
+                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1, item.size)}><FiPlus /></button>
                                             </div>
                                             <div className="price-stack">
                                                 <span className="current-p">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}</span>
                                             </div>
                                         </div>
-                                        {item.size && <div className="cart-item-meta">Size: <strong>{item.size}</strong></div>}
                                     </div>
                                 </div>
                             </motion.div>
@@ -103,7 +103,6 @@ const Cart = () => {
                     </AnimatePresence>
                 </div>
 
-                {/* Right Side: Bill Summary */}
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="price-sidebar-premium">
                     <div className="bill-card-3d">
                         <p className="summary-title">ORDER SUMMARY ({cart.length} Items)</p>

@@ -7,7 +7,6 @@ import {
 } from 'react-icons/fi';
 import './AdminDashboard.css';
 
-// ✅ Using Dynamic API URL for Socket connection
 const baseURL = import.meta.env.VITE_API_URL;
 const socket = io(baseURL);
 
@@ -15,33 +14,24 @@ const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Stats state: Jo backend se live update hogi
     const [stats, setStats] = useState({
         bankBalance: 0,
         expectedCash: 0,
     });
     
-    // Pulse animation logic for new orders
     const [isPulsing, setIsPulsing] = useState(false);
 
     useEffect(() => {
-        // 1. Real-time Listener for Socket Events
         socket.on('connect', () => {
             console.log("✅ Connected to Real-time Server");
         });
 
         socket.on('updateLedger', (data) => {
-            console.log("💰 Real-time Ledger Update:", data);
-            
             setStats({
                 bankBalance: data.bankBalance || 0,
                 expectedCash: data.expectedCash || 0
             });
-
-            // Pulse on karo jab naya data aaye
             setIsPulsing(true);
-            
-            // 5 second baad pulse band karein
             setTimeout(() => setIsPulsing(false), 5000);
         });
 
@@ -68,7 +58,6 @@ const AdminLayout = () => {
                     <h3>Owner Panel</h3>
                     <p>ShopLane Premium</p>
                 </div>
-
                 <nav className="sidebar-nav">
                     {menuItems.map((item) => (
                         <Link 
@@ -81,7 +70,6 @@ const AdminLayout = () => {
                         </Link>
                     ))}
                 </nav>
-
                 <div className="sidebar-footer">
                     <button onClick={() => navigate('/')} className="back-btn">
                         <FiArrowLeft /> <span>Back to Shop</span>
@@ -89,14 +77,21 @@ const AdminLayout = () => {
                 </div>
             </aside>
 
+            <nav className="mobile-bottom-nav">
+                {menuItems.map((item) => (
+                    <Link key={item.path} to={item.path} className={`mobile-nav-link ${location.pathname === item.path ? 'active' : ''}`}>
+                        {item.icon}
+                        <small>{item.label}</small>
+                    </Link>
+                ))}
+            </nav>
+
             <main className="admin-main-content">
                 <header className="admin-top-bar">
                     <div className="top-bar-left">
                         <h2>{currentTitle}</h2>
                     </div>
-
                     <div className="top-bar-right">
-                        {/* BANK REVENUE: Jo status 'Paid' hai */}
                         <div className="ledger-badge bank">
                             <FiCreditCard />
                             <div className="ledger-info">
@@ -104,26 +99,27 @@ const AdminLayout = () => {
                                 <span>₹{stats.bankBalance.toLocaleString('en-IN')}</span>
                             </div>
                         </div>
-
-                        {/* PENDING/COD: Jo abhi Paid nahi hain */}
                         <div className={`ledger-badge cod ${isPulsing ? 'live-alert' : ''}`}>
                             <FiTruck />
                             <div className="ledger-info">
                                 <small>PENDING/COD</small>
                                 <span>₹{stats.expectedCash.toLocaleString('en-IN')}</span>
                             </div>
-                            {/* Pulse animation dot */}
                             {isPulsing && <div className="status-dot pulse"></div>}
                         </div>
-                        
                         <div className="admin-profile-circle">S</div>
                     </div>
                 </header>
                 
+                {/* Ab yahan sirf wahi dikhega jo aapke stats/overview page mein hai */}
                 <div className="admin-page-container">
-                    {/* Yahan stats pass kiye hain taaki Dashboard cards bhi update ho sakein */}
                     <Outlet context={{ stats }} /> 
                 </div>
+                
+                <footer className="sync-status">
+                    <div className="sync-indicator"></div>
+                    <span>Real-time Sync Active</span>
+                </footer>
             </main>
         </div>
     );

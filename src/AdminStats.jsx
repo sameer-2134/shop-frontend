@@ -1,90 +1,95 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { 
-    FiTrendingUp, FiShoppingBag, FiCreditCard, FiClock, 
-    FiPlus, FiFileText, FiPercent, FiActivity 
+    FiTrendingUp, FiCreditCard, FiClock, 
+    FiPlus, FiFileText, FiPercent, FiActivity, FiArrowRight 
 } from 'react-icons/fi';
-import './AdminDashboard.css'; 
+import './AdminStats.css'; 
 
 const AdminStats = () => {
-    // Layout se live stats nikaal lo (Socket ka kamaal)
-    const { stats } = useOutletContext();
+    // Layout se live stats nikaal lo (Socket logic with fallbacks)
+    const { stats = { bankBalance: 0, expectedCash: 0 } } = useOutletContext() || {};
 
-    // Live Cards Data
     const liveCards = [
         {
             id: 1,
             label: "Total Revenue",
-            value: `₹${(stats.bankBalance + stats.expectedCash).toLocaleString('en-IN')}`,
+            value: `₹${((stats?.bankBalance || 0) + (stats?.expectedCash || 0)).toLocaleString('en-IN')}`,
             icon: <FiTrendingUp />,
-            color: "#10b981", // Emerald
-            growth: "+Live",
-            desc: "Combined Bank + COD"
+            color: "#10b981",
+            desc: "Net Business Value"
         },
         {
             id: 2,
             label: "Bank Balance",
-            value: `₹${stats.bankBalance.toLocaleString('en-IN')}`,
+            value: `₹${(stats?.bankBalance || 0).toLocaleString('en-IN')}`,
             icon: <FiCreditCard />,
-            color: "#3b82f6", // Blue
-            growth: "Razorpay",
-            desc: "Direct Payouts"
+            color: "#3b82f6",
+            desc: "Settled Payouts"
         },
         {
             id: 3,
             label: "COD Pending",
-            value: `₹${stats.expectedCash.toLocaleString('en-IN')}`,
+            value: `₹${(stats?.expectedCash || 0).toLocaleString('en-IN')}`,
             icon: <FiClock />,
-            color: "#f59e0b", // Amber
-            growth: "Expected",
-            desc: "From delivery"
+            color: "#f59e0b",
+            desc: "Expected from Delivery"
         },
         {
             id: 4,
-            label: "Live Status",
+            label: "System Status",
             value: "Active",
             icon: <FiActivity />,
-            color: "#8b5cf6", // Purple
-            growth: "Online",
-            desc: "Socket Connected"
+            color: "#8b5cf6",
+            desc: "Socket Stable"
         }
     ];
 
     return (
-        <div className="stats-wrapper">
-            {/* 1. Live Stats Cards Grid */}
-            <div className="stats-grid">
+        <div className="admin-main-content">
+            {/* Header Section */}
+            <header className="stats-header">
+                <div>
+                    <h1>Live Business Insights</h1>
+                    <p className="subtitle">Real-time data from your store</p>
+                </div>
+                <div className="live-sync-indicator">
+                    <span className="pulse-dot"></span>
+                    Live Sync Active
+                </div>
+            </header>
+
+            {/* 1. High-Performance Stats Grid */}
+            <div className="stats-grid-v2">
                 {liveCards.map((item) => (
-                    <div key={item.id} className="stat-card" style={{ "--card-color": item.color }}>
-                        <div className="stat-card-inner">
-                            <div className="stat-icon-box" style={{ background: `${item.color}15`, color: item.color }}>
+                    <div key={item.id} className="premium-stat-card" style={{ "--accent": item.color }}>
+                        <div className="card-glass-effect"></div>
+                        <div className="card-top">
+                            <div className="icon-wrapper">
                                 {item.icon}
                             </div>
-                            <div className="stat-content">
-                                <p className="stat-label">{item.label}</p>
-                                <h3 className="stat-value">{item.value}</h3>
-                                <div className="stat-badge">
-                                    <span className="growth-text" style={{ color: item.color }}>{item.growth}</span>
-                                    <span className="time-text">{item.desc}</span>
-                                </div>
-                            </div>
+                            <span className="live-tag">LIVE</span>
                         </div>
-                        <div className="card-glow"></div>
+                        <div className="card-info">
+                            <p className="card-label">{item.label}</p>
+                            <h2 className="card-value">{item.value}</h2>
+                            <p className="card-desc">{item.desc}</p>
+                        </div>
                     </div>
                 ))}
             </div>
 
-            {/* 2. Dashboard Bottom Row (Transactions + Actions) */}
-            <div className="dashboard-row">
+            {/* 2. Responsive Layout Row */}
+            <div className="dashboard-flex-row">
                 
                 {/* Recent Transactions Table */}
-                <div className="data-card recent-transactions">
-                    <div className="card-header">
+                <div className="content-panel table-panel">
+                    <div className="panel-header">
                         <h3>Recent Transactions</h3>
-                        <button className="view-all-btn">View All</button>
+                        <button className="view-all-link">View All <FiArrowRight /></button>
                     </div>
-                    <div className="table-responsive">
-                        <table className="mini-table">
+                    <div className="table-wrapper">
+                        <table className="modern-table">
                             <thead>
                                 <tr>
                                     <th>Order ID</th>
@@ -94,50 +99,46 @@ const AdminStats = () => {
                                 </tr>
                             </thead>
                             <tbody>
+                                {/* Example row with real-look logic */}
                                 <tr>
-                                    <td><span className="order-id">#ORD-7721</span></td>
-                                    <td><strong>Rahul Sharma</strong></td>
+                                    <td className="mono">#ORD-7721</td>
+                                    <td>Rahul Sharma</td>
                                     <td><span className="status-pill success">Paid</span></td>
-                                    <td className="amount">₹2,499</td>
+                                    <td className="amount-cell">₹2,499</td>
                                 </tr>
                                 <tr>
-                                    <td><span className="order-id">#ORD-7722</span></td>
-                                    <td><strong>Priya Patel</strong></td>
+                                    <td className="mono">#ORD-7722</td>
+                                    <td>Priya Patel</td>
                                     <td><span className="status-pill warning">Pending</span></td>
-                                    <td className="amount">₹1,200</td>
-                                </tr>
-                                <tr>
-                                    <td><span className="order-id">#ORD-7723</span></td>
-                                    <td><strong>Sameer Mansuri</strong></td>
-                                    <td><span className="status-pill success">Paid</span></td>
-                                    <td className="amount">₹4,500</td>
+                                    <td className="amount-cell">₹1,200</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {/* Owner Action Center */}
-                <div className="data-card action-center">
-                    <div className="card-header">
+                {/* Owner Control Center */}
+                <div className="content-panel controls-panel">
+                    <div className="panel-header">
                         <h3>Owner Controls 👑</h3>
                     </div>
-                    <div className="action-grid">
-                        <button className="premium-action-btn primary">
-                            <FiPlus /> Add Product
+                    <div className="action-button-grid">
+                        <button className="action-tile">
+                            <FiPlus className="tile-icon" />
+                            <span>Add Product</span>
                         </button>
-                        <button className="premium-action-btn">
-                            <FiFileText /> Sales Report
+                        <button className="action-tile">
+                            <FiFileText className="tile-icon" />
+                            <span>Sales Report</span>
                         </button>
-                        <button className="premium-action-btn">
-                            <FiPercent /> Coupons
+                        <button className="action-tile">
+                            <FiPercent className="tile-icon" />
+                            <span>Coupons</span>
                         </button>
-                        <button className="premium-action-btn danger">
-                            <FiActivity /> System Logs
+                        <button className="action-tile danger">
+                            <FiActivity className="tile-icon" />
+                            <span>System Logs</span>
                         </button>
-                    </div>
-                    <div className="socket-status-tag">
-                        <span className="dot pulse"></span> Real-time Sync Active
                     </div>
                 </div>
 

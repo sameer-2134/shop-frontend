@@ -5,7 +5,6 @@ import axios from 'axios';
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    // Dynamic API URL for production
     const API_BASE_URL = import.meta.env.VITE_API_URL;
 
     const [cart, setCart] = useState(() => {
@@ -22,7 +21,15 @@ export const CartProvider = ({ children }) => {
 
     const getActiveToken = () => localStorage.getItem('token');
 
-    // 1. Logout/Full Clear
+    // Reusable Toast function with dismiss to prevent stacking
+    const showToast = (message, type = 'success') => {
+        toast.dismiss(); 
+        if (type === 'success') toast.success(message);
+        else if (type === 'error') toast.error(message);
+        else if (type === 'info') toast(message, { icon: 'ℹ️' });
+        else toast(message);
+    };
+
     const clearCart = useCallback(() => {
         setCart([]);
         setWishlist([]);
@@ -31,23 +38,16 @@ export const CartProvider = ({ children }) => {
         localStorage.removeItem('token');
     }, []);
 
-    // ✅ Order Success Clear (DB + State + LocalStorage)
     const orderSuccessClear = useCallback(async () => {
         try {
             const activeToken = getActiveToken();
-            
-            // Step A: Backend se cart delete karo
             if (activeToken) {
                 await axios.delete(`${API_BASE_URL}/api/cart/empty`, {
                     headers: { Authorization: `Bearer ${activeToken}` }
                 });
             }
-
-            // Step B: Frontend state + LocalStorage khali karo
             setCart([]);
             localStorage.removeItem('cart');
-            
-            console.log("Cart cleared from everywhere! 🔥");
         } catch (error) {
             console.error("Error clearing cart after order:", error);
             setCart([]);
@@ -55,7 +55,6 @@ export const CartProvider = ({ children }) => {
         }
     }, [API_BASE_URL]);
 
-    // 2. Fetch User Data from Server
     const fetchUserData = useCallback(async () => {
         const activeToken = getActiveToken(); 
         if (!activeToken) {
@@ -74,7 +73,8 @@ export const CartProvider = ({ children }) => {
                 return {
                     ...item.productId,
                     _id: item.productId._id || item.productId,
-                    quantity: item.quantity || 1,
+                    quantity: item.quantity,
+                    size: item.size,
                     cartItemId: item._id
                 };
             }).filter(Boolean) || [];
@@ -91,8 +91,9 @@ export const CartProvider = ({ children }) => {
             setCart(serverCart);
 
         } catch (err) {
-            console.error("Data fetch error:", err);
-            if (err.response?.status === 401) clearCart();
+            if (err.response?.status === 401) {
+                setTimeout(() => clearCart(), 0);
+            }
         } finally {
             setLoading(false);
         }
@@ -102,46 +103,47 @@ export const CartProvider = ({ children }) => {
         fetchUserData();
     }, [fetchUserData]);
 
-    // LocalStorage sync
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
     }, [cart, wishlist]);
 
-    const showToast = (message, type = 'success') => {
-        toast.dismiss();
-        if (type === 'success') toast.success(message);
-        else if (type === 'error') toast.error(message);
-        else toast(message);
-    };
-
+    // ✅ FIXED: Add to Cart (Double Toast Fix using current state check)
     const addToCart = async (product) => {
-        setCart(prev => {
-            if (prev.find(item => item._id === product._id)) {
-                showToast("Item already in bag!", "info");
-                return prev;
-            }
-            showToast("Added to bag! 🔥", "success");
-            return [...prev, { ...product, quantity: 1 }];
-        });
+        // Check current state immediately
+        const isExist = cart.find(item => item._id === product._id && item.size === product.size);
+
+        if (isExist) {
+            showToast("Item with this size already in bag!", "info");
+            return; // Yahin se stop, no further execution
+        }
+
+        // If not exist, update state and show toast once
+        setCart(prev => [...prev, { ...product, quantity: 1 }]);
+        showToast("Added to bag! 🔥", "success");
         
         const token = getActiveToken();
         if (token) {
-            axios.post(`${API_BASE_URL}/api/cart/add`, { productId: product._id }, {
+            axios.post(`${API_BASE_URL}/api/cart/add`, { 
+                productId: product._id, 
+                size: product.size 
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
-            }).catch(e => console.log(e));
+            }).catch(e => console.log("Backend error:", e));
         }
     };
 
+    // ✅ FIXED: Wishlist Notification (Double Toast Fix)
     const addToWishlist = async (product) => {
-        setWishlist(prev => {
-            if (prev.find(item => item._id === product._id)) {
-                showToast("Already in wishlist! ❤️", "info");
-                return prev;
-            }
-            showToast("Added to wishlist! ✨", "success");
-            return [...prev, product];
-        });
+        const isExist = wishlist.find(item => item._id === product._id);
+
+        if (isExist) {
+            showToast("Already in wishlist! ❤️", "info");
+            return;
+        }
+
+        setWishlist(prev => [...prev, product]);
+        showToast("Added to wishlist! ✨", "success");
         
         const token = getActiveToken();
         if (token) {
@@ -162,25 +164,36 @@ export const CartProvider = ({ children }) => {
         showToast("Removed from wishlist.", "error");
     };
 
-    const removeFromCart = async (id) => {
-        setCart(prev => prev.filter(item => item._id !== id));
+    const removeFromCart = async (id, size) => {
+        setCart(prev => prev.filter(item => !(item._id === id && item.size === size)));
         const token = getActiveToken();
         if (token) {
             axios.delete(`${API_BASE_URL}/api/cart/remove/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` },
+                data: { size }
             }).catch(e => console.log(e));
         }
         showToast("Removed from bag.", "error");
     };
 
-    const updateQuantity = async (productId, newQty) => {
+    const updateQuantity = async (productId, newQty, size) => {
         if (newQty < 1) return;
-        setCart(prev => prev.map(item => item._id === productId ? { ...item, quantity: newQty } : item));
+        setCart(prev => prev.map(item => 
+            (item._id === productId && item.size === size) ? { ...item, quantity: newQty } : item
+        ));
         const token = getActiveToken();
         if (token) {
-            axios.put(`${API_BASE_URL}/api/cart/update`, { productId, quantity: newQty }, {
-                headers: { Authorization: `Bearer ${token}` }
-            }).catch(e => console.log(e));
+            try {
+                await axios.post(`${API_BASE_URL}/api/cart/update`, { 
+                    itemId: productId, 
+                    quantity: newQty, 
+                    size: size 
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (e) {
+                console.error("Backend update error:", e);
+            }
         }
     };
 
