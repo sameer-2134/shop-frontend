@@ -11,25 +11,15 @@ import {
 import "./Gallery.css";
 
 const Gallery = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL;
+  // ✅ Local Backend Fallback
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+  
   const [products, setProducts] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  
-  // ✅ 1. LOGIN REFRESH PROBLEM KA SOLUTION
-  // Is logic ko Navbar me bhi use kar sakte ho bina page refresh kiye state update karne ke liye
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
-
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsLoggedIn(!!localStorage.getItem("token"));
-    };
-    // Storage change detect karne ke liye listener
-    window.addEventListener("storage", checkAuth);
-    return () => window.removeEventListener("storage", checkAuth);
-  }, []);
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -38,6 +28,13 @@ const Gallery = () => {
 
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const selectedCat = params.get("cat")?.toUpperCase() || "NEW_ARCHIVE";
+
+  // Auth Sync
+  useEffect(() => {
+    const checkAuth = () => setIsLoggedIn(!!localStorage.getItem("token"));
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
 
   const shuffleArray = (array) => {
     let shuffled = [...array];
@@ -48,26 +45,32 @@ const Gallery = () => {
     return shuffled;
   };
 
+  // ✅ Fixed Image Path Logic
   const getImage = (img) => {
     if (!img) return "https://placehold.co/800x1000?text=No+Image";
-    if (img.startsWith("http")) return img.replace("http://", "https://");
-    const baseUrl = API_BASE_URL?.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    if (img.startsWith("http")) return img;
     const cleanPath = img.replace(/\\/g, "/");
-    const formattedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
-    return `${baseUrl}${formattedPath}`.replace("http://", "https://");
+    return `${API_BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
   };
 
+  // ✅ Updated Fetch Logic
   const fetchProducts = useCallback(async (loadMore = false) => {
     if (loadMore) setLoadingMore(true);
     else setLoading(true);
+    
     try {
       const res = await axios.get(`${API_BASE_URL}/api/products/all`, {
-        params: { limit: 12, cursor: loadMore ? cursor : "", category: params.get("cat") || "" }
+        params: { 
+          limit: 12, 
+          cursor: loadMore ? cursor : "", 
+          category: params.get("cat") || "" 
+        }
       });
+      
       if (res.data.success) {
         setProducts(prev => {
-          const incomingProducts = shuffleArray(res.data.products);
-          return loadMore ? [...prev, ...incomingProducts] : incomingProducts;
+          const incoming = shuffleArray(res.data.products);
+          return loadMore ? [...prev, ...incoming] : incoming;
         });
         setCursor(res.data.nextCursor);
         setHasMore(res.data.hasMore);
@@ -82,13 +85,13 @@ const Gallery = () => {
 
   useEffect(() => { fetchProducts(false); }, [location.search]);
 
+  // Scroll Management
   useLayoutEffect(() => {
     if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
-    const savedScrollPos = localStorage.getItem(`scrollPos_${location.search}`);
-    if (savedScrollPos && !loading && products.length > 0) {
+    const savedPos = localStorage.getItem(`scrollPos_${location.search}`);
+    if (savedPos && !loading && products.length > 0) {
       setTimeout(() => {
-        if (lenisRef.current) lenisRef.current.scrollTo(parseInt(savedScrollPos), { immediate: true });
-        else window.scrollTo(0, parseInt(savedScrollPos));
+        if (lenisRef.current) lenisRef.current.scrollTo(parseInt(savedPos), { immediate: true });
       }, 150);
     }
   }, [loading, products.length, location.search]);
@@ -99,17 +102,18 @@ const Gallery = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [location.search]);
 
+  // Lenis Smooth Scroll
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, smoothWheel: true, lerp: 0.1 });
     lenisRef.current = lenis;
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
     requestAnimationFrame(raf);
-    return () => { lenis.destroy(); lenisRef.current = null; };
+    return () => lenis.destroy();
   }, []);
 
   const { scrollYProgress } = useScroll();
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const rotateX = useTransform(smoothProgress, [0, 0.2], [0, 15]);
+  const rotateXHeader = useTransform(smoothProgress, [0, 0.2], [0, 15]);
 
   if (loading && products.length === 0) {
     return (
@@ -139,7 +143,7 @@ const Gallery = () => {
       </div>
 
       <header className="premium-header">
-        <motion.div className="header-grid" style={{ rotateX }}>
+        <motion.div className="header-grid" style={{ rotateX: rotateXHeader }}>
           <div className="h-left">
             <span className="system-status">
               <span className="blink-dot">●</span> 
@@ -169,7 +173,6 @@ const Gallery = () => {
                   <img 
                     src={getImage(item.images?.[0])} 
                     alt={item.name} 
-                    loading="lazy" 
                     onError={(e) => { e.target.src="https://placehold.co/800x1000?text=IMAGE_ERROR"; }}
                   />
                   <div className="scan-line" />

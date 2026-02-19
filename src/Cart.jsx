@@ -61,15 +61,16 @@ const Cart = () => {
                     <AnimatePresence mode="popLayout">
                         {cart.map((item) => (
                             <motion.div 
-                                key={`${item._id}-${item.size}`} // Updated key to handle same product with diff sizes
+                                key={`${item._id}-${item.size}`} 
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 className="cart-card-premium"
                             >
+                                {/* Remove Button */}
                                 <button className="remove-btn-3d" onClick={() => removeFromCart(item._id, item.size)}>
-                                    <FiTrash2 />
+                                    <FiX />
                                 </button>
 
                                 <div className="cart-card-inner">
@@ -81,21 +82,38 @@ const Cart = () => {
                                         <h3 className="brand-label">{item.brand || 'ShopLane Premium'}</h3>
                                         <h4 className="product-title">{item.name}</h4>
                                         
-                                        {/* Highlighted Size Section */}
-                                        <div className="cart-size-badge">
-                                            SIZE: <span>{item.size || 'N/A'}</span>
+                                        {/* FIXED SIZE SECTION */}
+                                        <div className="cart-item-details-row">
+                                            <div className="size-selector-badge">
+                                                <span>Size: <strong>{item.size || 'Free Size'}</strong></span>
+                                            </div>
+                                            <div className="qty-selector-badge">
+                                                <span>Qty: <strong>{item.quantity || 1}</strong></span>
+                                            </div>
                                         </div>
 
                                         <div className="qty-price-flex">
                                             <div className="modern-qty-box">
-                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1, item.size)} disabled={item.quantity <= 1}><FiMinus /></button>
-                                                <span>{item.quantity || 1}</span>
-                                                <button onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1, item.size)}><FiPlus /></button>
+                                                <button 
+                                                    onClick={() => updateQuantity(item._id, (item.quantity || 1) - 1, item.size)} 
+                                                    disabled={item.quantity <= 1}
+                                                >
+                                                    <FiMinus />
+                                                </button>
+                                                <span className="qty-num">{item.quantity || 1}</span>
+                                                <button 
+                                                    onClick={() => updateQuantity(item._id, (item.quantity || 1) + 1, item.size)}
+                                                >
+                                                    <FiPlus />
+                                                </button>
                                             </div>
+                                            
                                             <div className="price-stack">
                                                 <span className="current-p">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}</span>
                                             </div>
                                         </div>
+
+                                        <p className="return-policy"><strong>14 days</strong> return available</p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -103,32 +121,51 @@ const Cart = () => {
                     </AnimatePresence>
                 </div>
 
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="price-sidebar-premium">
+                <motion.div 
+                    initial={{ opacity: 0, x: 20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    className="price-sidebar-premium"
+                >
                     <div className="bill-card-3d">
-                        <p className="summary-title">ORDER SUMMARY ({cart.length} Items)</p>
+                        <p className="summary-title">PRICE DETAILS ({cart.length} Items)</p>
                         <div className="bill-rows">
-                            <div className="b-row"><span>Total MRP</span><span>₹{totalMRP.toLocaleString()}</span></div>
-                            <div className="b-row"><span>Platform Fee</span><span className="text-success">₹{platformFee}</span></div>
-                            <div className="b-row"><span>Shipping</span><span className="text-success">FREE</span></div>
+                            <div className="b-row">
+                                <span>Total MRP</span>
+                                <span>₹{totalMRP.toLocaleString()}</span>
+                            </div>
+                            <div className="b-row">
+                                <span>Platform Fee</span>
+                                <span className="text-success">₹{platformFee}</span>
+                            </div>
+                            <div className="b-row">
+                                <span>Shipping Fee</span>
+                                <span className="text-success">FREE</span>
+                            </div>
+                            <div className="divider"></div>
                             <div className="b-row total-amount">
-                                <span>Total Payable</span>
+                                <span>Total Amount</span>
                                 <span>₹{totalAmount.toLocaleString()}</span>
                             </div>
-                        </div>
-
-                        <div className="trust-footer">
-                            <span><FiShield /> 100% SECURE</span>
-                            <span><FiTruck /> FAST DELIVERY</span>
                         </div>
 
                         <button className="place-order-btn-3d" onClick={() => navigate('/checkout/address')}>
                             PLACE ORDER 
                         </button>
+
+                        <div className="trust-footer">
+                            <div className="trust-item"><FiShield /> 100% SECURE</div>
+                            <div className="trust-item"><FiTruck /> FAST DELIVERY</div>
+                        </div>
                     </div>
                 </motion.div>
             </div>
         </div>
     );
 };
+
+// Internal icon fix for the remove button
+const FiX = () => (
+    <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+);
 
 export default Cart;

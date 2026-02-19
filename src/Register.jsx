@@ -6,6 +6,10 @@ import { Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff } from 'lucide-reac
 import { motion, AnimatePresence } from 'framer-motion';
 import './Register.css';
 
+// --- CONFIGURATION ---
+// Ise yahan define karne se manage karna asan ho jata hai
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
 const WelcomeModal = ({ show, name }) => (
     <AnimatePresence>
         {show && (
@@ -35,38 +39,42 @@ const Register = () => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const getBaseURL = () => {
-        let url = import.meta.env.VITE_API_URL || "https://shop-backend-ngmr.onrender.com";
-        return url.endsWith('/') ? url.slice(0, -1) : url;
-    };
-
     const handleRegister = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const baseURL = getBaseURL();
+
         try {
-            const response = await axios.post(`${baseURL}/api/auth/register`, {
+            const response = await axios.post(`${API_BASE_URL}/api/auth/register`, {
                 name: formData.fullName.trim(),
                 email: formData.email,
                 password: formData.password
             });
+
             if (response.data.success) {
+                // Storage Update
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 
+                // Sync across tabs/components
                 window.dispatchEvent(new Event("storage"));
 
                 setUserName(formData.fullName.split(' ')[0]);
                 setShowWelcome(true);
+
+                // Redirect after animation
                 setTimeout(() => navigate('/gallery'), 3000);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || "Registration Failed!");
-        } finally { setLoading(false); }
+            const errorMsg = error.response?.data?.message || "Registration Failed!";
+            toast.error(errorMsg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="shoplane-auth-container">
+            {/* Background Aesthetic */}
             <div className="bg-floating-text">
                 <motion.h2 
                     animate={{ y: [0, -20, 0], opacity: [0.03, 0.06, 0.03] }} 
@@ -92,23 +100,38 @@ const Register = () => {
                     <p>Where luxury meets technology.</p>
                 </div>
 
-                {/* Google Button Hata Diya Hai */}
-
                 <form onSubmit={handleRegister} className="auth-form">
                     <div className="dark-input-wrapper">
                         <User size={18} className="left-icon" />
-                        <input type="text" name="fullName" placeholder="Enter Full Name" onChange={handleChange} required />
+                        <input 
+                            type="text" 
+                            name="fullName" 
+                            placeholder="Enter Full Name" 
+                            value={formData.fullName}
+                            onChange={handleChange} 
+                            required 
+                        />
                     </div>
+
                     <div className="dark-input-wrapper">
                         <Mail size={18} className="left-icon" />
-                        <input type="email" name="email" placeholder="Enter Your Email" onChange={handleChange} required />
+                        <input 
+                            type="email" 
+                            name="email" 
+                            placeholder="Enter Your Email" 
+                            value={formData.email}
+                            onChange={handleChange} 
+                            required 
+                        />
                     </div>
+
                     <div className="dark-input-wrapper">
                         <Lock size={18} className="left-icon" />
                         <input 
                             type={showPassword ? "text" : "password"} 
                             name="password" 
                             placeholder="Secure Password" 
+                            value={formData.password}
                             onChange={handleChange} 
                             required 
                         />

@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-hot-toast'; // Consistent toast usage
+import { toast } from 'react-hot-toast'; 
 import { Mail, Lock, LogIn, ArrowRight, ShieldCheck, Fingerprint } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import './Login.css';
+
+// --- CONFIGURATION ---
+// Development mein localhost aur Production (Live) mein Render ki URL automatically uthayega
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const Login = ({ setUser, setToken }) => {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // ✅ Dynamic API URL for production
-    const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-    // --- INTERACTIVE 3D SENSORS ---
+    // 3D Tilt Effect Logic
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const mouseXSpring = useSpring(x, { stiffness: 120, damping: 20 });
@@ -33,33 +34,33 @@ const Login = ({ setUser, setToken }) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // --- FULLY WORKING LOGIN HANDLER ---
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
+
         try {
-            // Updated to use dynamic API_BASE_URL
             const res = await axios.post(`${API_BASE_URL}/api/auth/login`, formData, { 
                 withCredentials: true 
             });
 
             if (res.data.success) {
-                // 1. Data Save karo
-                localStorage.setItem("token", res.data.token); 
+                // local storage update
+                localStorage.setItem('token', res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
                 
-                // 2. State Update karo
+                // State Sync (App.js ke liye)
                 if (setUser) setUser(res.data.user);
                 if (setToken) setToken(res.data.token);
                 
-                // 3. Feedback aur Redirect
+                // Custom Event for cross-component sync
+                window.dispatchEvent(new Event("storage"));
+
                 toast.success(`Welcome Back, ${res.data.user.name}! 🚀`);
                 navigate('/gallery'); 
             }
         } catch (error) {
             const errorMessage = error.response?.data?.message || "Login failed. Check server connection.";
             toast.error(errorMessage);
-            console.error("Login detail error:", error.response);
         } finally { 
             setLoading(false); 
         }
@@ -67,6 +68,7 @@ const Login = ({ setUser, setToken }) => {
 
     return (
         <div className="login-3d-wrapper">
+            {/* Ambient Background Elements */}
             <div className="login-bg-orb orb-primary"></div>
             <div className="login-bg-orb orb-secondary"></div>
             <div className="grid-layer"></div>
@@ -77,7 +79,7 @@ const Login = ({ setUser, setToken }) => {
                 style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
                 className="login-main-card"
             >
-                {/* Left Side: Visual Experience */}
+                {/* Left Panel: Visuals */}
                 <div className="login-visual-panel">
                     <motion.div style={{ translateZ: 100 }} className="visual-content">
                         <div className="brand-badge-3d">
@@ -93,7 +95,7 @@ const Login = ({ setUser, setToken }) => {
                     </motion.div>
                 </div>
 
-                {/* Right Side: High-End Form */}
+                {/* Right Panel: Form */}
                 <div className="login-form-panel">
                     <motion.div style={{ translateZ: 80 }} className="form-inner-3d">
                         <div className="login-header">

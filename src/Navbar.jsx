@@ -10,17 +10,42 @@ const menuData = [
     { 
         title: "MEN", 
         cat: "men", 
-        sub: ["T-Shirts", "Jeans", "Casual Shoes", "Shirts", "Watches", "Wallets"] 
+        sections: [
+            { heading: "Bottomwear", items: ["Jeans", "Casual Trousers", "Formal Trousers", "Shorts", "Track Pants"] },
+            { heading: "Footwear", items: ["Casual Shoes", "Sports Shoes", "Formal Shoes", "Sneakers", "Sandals", "Socks"] },
+            { heading: "Inner & Sleepwear", items: ["Briefs & Trunks", "Boxers", "Vests", "Sleepwear", "Thermals"] },
+            { heading: "Accessories", items: ["Watches", "Wallets", "Belts", "Smart Wearables", "Sunglasses"] },
+            { heading: "Grooming", items: ["Perfumes", "Trimmers", "Deodorants", "Caps & Hats"] }
+        ]
     },
     { 
         title: "WOMEN", 
         cat: "women", 
-        sub: ["Kurtas", "Dresses", "Handbags", "Earrings", "Jeans", "Flat Heels", "Makeup"] 
+        sections: [
+            { heading: "Indian & Fusion", items: ["Kurtas & Suits", "Sarees", "Ethnic Wear", "Lehenga Cholis", "Dupattas"] },
+            { heading: "Western Wear", items: ["Dresses", "Tops", "Jeans", "Trousers", "Co-ords", "Jumpsuits", "Shrugs"] },
+            { heading: "Beauty & Personal Care", items: ["Makeup", "Skincare", "Premium Beauty", "Lipsticks", "Fragrances"] },
+            { heading: "Lingerie & Sleep", items: ["Bra", "Briefs", "Shapewear", "Sleepwear", "Swimwear"] },
+            { heading: "Footwear & More", items: ["Flats", "Heels", "Boots", "Casual Shoes", "Watches", "Sunglasses"] }
+        ]
     },
     { 
         title: "KIDS", 
         cat: "kids", 
-        sub: ["T-Shirts", "Toys", "Dresses", "Footwear"] 
+        sections: [
+            { heading: "Clothing", items: ["T-Shirts", "Shirts", "Jeans", "Dresses", "Track Pants"] },
+            { heading: "Footwear & Toys", items: ["Casual Shoes", "Sports Shoes", "Toys", "Watches"] }
+        ]
+    },
+    {
+        title: "HOME & LIVING",
+        cat: "home",
+        sections: [
+            { heading: "Bed Linen", items: ["Bedsheets", "Bedding Sets", "Blankets", "Pillows", "Mattress Protectors"] },
+            { heading: "Bath & Flooring", items: ["Bath Towels", "Bath Rugs", "Carpets", "Floor Mats", "Door Mats"] },
+            { heading: "Lamps & Lighting", items: ["Floor Lamps", "Table Lamps", "Wall Lamps", "String Lights"] },
+            { heading: "Home Décor", items: ["Plants", "Candles", "Clocks", "Mirrors", "Wall Décor", "Vases"] }
+        ]
     }
 ];
 
@@ -37,11 +62,9 @@ const Navbar = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
     const { cart, wishlist, clearCart } = useCart();
 
-    // FIXED: Email based Admin Logic
     const isAdmin = 
         user?.role?.toLowerCase() === 'admin' || 
         user?.isAdmin === true || 
-        user?.role === 'Admin' ||
         user?.email === 'sameermansuri8912@gmail.com';
 
     useEffect(() => {
@@ -67,13 +90,15 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        clearCart();
-        setToken(null);
-        setUser(null);
-        toast.success("Logged out successfully");
-        navigate('/login');
+        if (window.confirm("Logout karein?")) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            clearCart();
+            setToken(null);
+            setUser(null);
+            toast.success("Logged out successfully");
+            navigate('/login');
+        }
     };
 
     return (
@@ -87,14 +112,25 @@ const Navbar = () => {
                     <Link to="/" className="nav-logo">ShopLane<span>.</span></Link>
                 </div>
 
+                {/* DESKTOP NAV - Fixing the hover gap here */}
                 <div className="desktop-nav-links">
-                    {menuData.map((item) => (
-                        <div key={item.title} className="nav-item mega-trigger">
-                            {item.title} <FiChevronDown className="chevron-icon" />
+                    {menuData.map((menu) => (
+                        <div key={menu.title} className="nav-item mega-trigger">
+                            <span className="nav-link-text">
+                                {menu.title} <FiChevronDown className="chevron-icon" />
+                            </span>
+                            
+                            {/* Mega menu starts here */}
                             <div className="mega-menu">
-                                <div className="mega-column">
-                                    <h4>Trending {item.title}</h4>
-                                    {item.sub.map(s => <Link key={s} to={`/gallery?cat=${s}`}>{s}</Link>)}
+                                <div className="mega-grid">
+                                    {menu.sections.map((section, idx) => (
+                                        <div key={idx} className="mega-column">
+                                            <h4>{section.heading}</h4>
+                                            {section.items.map(item => (
+                                                <Link key={item} to={`/gallery?cat=${item}`}>{item}</Link>
+                                            ))}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -138,42 +174,24 @@ const Navbar = () => {
                             <span className="hide-mobile">Profile</span>
                             <AnimatePresence>
                                 {isProfileOpen && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        className="user-dropdown-premium"
-                                    >
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="user-dropdown-premium">
                                         <div className="dropdown-header">
                                             <p className="user-name">Hi, {user?.name}</p>
-                                            <p className="user-email">{user?.email}</p>
                                         </div>
-                                        
-                                        {isAdmin && (
-                                            /* FIXED: Link changed from /admin to /admin-dashboard */
-                                            <Link to="/admin-dashboard" className="dropdown-item admin-highlight-item">
-                                                <FiSettings /> <strong>Admin Panel</strong>
-                                            </Link>
-                                        )}
-                                        
-                                        <Link to="/profile" className="dropdown-item"><FiUser /> My Profile</Link>
+                                        {isAdmin && <Link to="/admin-dashboard" className="dropdown-item"><FiSettings /> Admin Panel</Link>}
                                         <Link to="/orders" className="dropdown-item"><FiShoppingBag /> My Orders</Link>
-                                        <button onClick={handleLogout} className="dropdown-item logout-btn">
-                                            <FiLogOut /> Logout
-                                        </button>
+                                        <button onClick={handleLogout} className="dropdown-item logout-btn"><FiLogOut /> Logout</button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" className="nav-action-item">
-                            <FiUser />
-                            <span>Login</span>
-                        </Link>
+                        <Link to="/login" className="nav-action-item"><FiUser /> <span>Login</span></Link>
                     )}
                 </div>
             </div>
 
+            {/* MOBILE DRAWER - As per your Image 2 */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <>
@@ -199,27 +217,29 @@ const Navbar = () => {
 
                             <div className="drawer-body">
                                 {isAdmin && (
-                                    /* FIXED: Link changed from /admin to /admin-dashboard */
                                     <Link to="/admin-dashboard" className="mobile-admin-special" onClick={() => setIsMenuOpen(false)}>
                                         <FiSettings /> ADMIN DASHBOARD
                                     </Link>
                                 )}
 
-                                {menuData.map((item) => (
-                                    <div key={item.title} className="mobile-accordion-item">
-                                        <div className="accordion-title" onClick={() => setActiveAccordion(activeAccordion === item.title ? null : item.title)}>
-                                            {item.title} {activeAccordion === item.title ? <FiMinus /> : <FiPlus />}
+                                {menuData.map((menu) => (
+                                    <div key={menu.title} className="mobile-accordion-item">
+                                        <div className="accordion-title" onClick={() => setActiveAccordion(activeAccordion === menu.title ? null : menu.title)}>
+                                            {menu.title} {activeAccordion === menu.title ? <FiMinus /> : <FiPlus />}
                                         </div>
                                         <AnimatePresence>
-                                            {activeAccordion === item.title && (
-                                                <motion.div 
-                                                    initial={{ height: 0, opacity: 0 }} 
-                                                    animate={{ height: 'auto', opacity: 1 }} 
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
-                                                    className="accordion-content"
-                                                >
-                                                    {item.sub.map(s => <Link key={s} to={`/gallery?cat=${s}`} onClick={() => setIsMenuOpen(false)}>{s}</Link>)}
+                                            {activeAccordion === menu.title && (
+                                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="accordion-content">
+                                                    {menu.sections.map((sec, sIdx) => (
+                                                        <div key={sIdx} className="mobile-drawer-section">
+                                                            <div className="mobile-section-heading">{sec.heading}</div>
+                                                            <div className="mobile-section-links">
+                                                                {sec.items.map(sub => (
+                                                                    <Link key={sub} to={`/gallery?cat=${sub}`} onClick={() => setIsMenuOpen(false)}>{sub}</Link>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

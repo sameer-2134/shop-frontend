@@ -132,7 +132,6 @@ const AdminProduct = () => {
             if (uploadMode === 'single') {
                 const data = new FormData();
                 
-                // Final size validation
                 const finalSizes = formData.sizes.length > 0 
                     ? formData.sizes 
                     : (getAvailableSizes().length === 0 ? ["Free Size"] : []);
@@ -143,27 +142,24 @@ const AdminProduct = () => {
                     return;
                 }
 
-                // Append Fields
+                // Append Fields with Data Formatting
                 data.append('name', formData.name);
                 data.append('brand', formData.brand);
-                data.append('price', formData.price);
-                data.append('originalPrice', formData.originalPrice || formData.price);
-                data.append('stock', formData.stock);
-                data.append('description', formData.description);
-                data.append('section', formData.section);
-                data.append('category', formData.category);
-                data.append('subCategory', formData.subCategory);
+                data.append('price', Number(formData.price));
+                data.append('originalPrice', Number(formData.originalPrice || formData.price));
+                data.append('stock', Number(formData.stock));
+                data.append('description', formData.description || "No description provided");
+                data.append('section', formData.section.toLowerCase());
+                data.append('category', formData.category.toLowerCase());
+                data.append('subCategory', formData.subCategory.toLowerCase());
                 
-                // Append Colors & Sizes as JSON
                 data.append('sizes', JSON.stringify(finalSizes));
                 data.append('colors', JSON.stringify(formData.colors));
 
-                // Append Binary Images
                 formData.images.forEach(img => {
                     data.append('images', img);
                 });
 
-                // Append External Image URLs as a JSON array (Matches Controller)
                 if (formData.imageUrl) {
                     const urlArray = formData.imageUrl.split(',').map(u => u.trim()).filter(u => u);
                     data.append('externalImageUrls', JSON.stringify(urlArray));
@@ -171,20 +167,33 @@ const AdminProduct = () => {
 
                 const res = await axios.post(`${baseURL}/api/products/add`, data);
                 if (res.data.success) {
-                    toast.success("Asset Authorized! Product Listed. 🚀");
+                    toast.success("Product Listed Successfully! 🚀");
                     resetForm();
                 }
             } else {
-                // ✅ FIXED BULK MODE: Ensuring images is always an array
+                // BULK MODE PROCESSING
                 let productsArray = [];
                 const trimmedText = bulkText.trim();
 
                 if (trimmedText.startsWith('[') || trimmedText.startsWith('{')) {
-                    productsArray = JSON.parse(trimmedText).map(p => ({
+                    // JSON Mode
+                    const parsed = JSON.parse(trimmedText);
+                    const rawArray = Array.isArray(parsed) ? parsed : [parsed];
+                    
+                    productsArray = rawArray.map(p => ({
                         ...p,
-                        images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : [])
+                        price: Number(p.price),
+                        originalPrice: Number(p.originalPrice || p.price),
+                        stock: Number(p.stock || 0),
+                        section: p.section?.toLowerCase(),
+                        category: p.category?.toLowerCase(),
+                        subCategory: p.subCategory?.toLowerCase(),
+                        images: Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []),
+                        sizes: p.sizes || ["Free Size"],
+                        colors: p.colors || []
                     }));
                 } else {
+                    // CSV Mode
                     const rows = trimmedText.split('\n');
                     productsArray = rows.map(row => {
                         const [brand, name, price, originalPrice, stock, section, category, subCategory, imageUrl, description, sizesStr] = row.split(',').map(s => s?.trim());
@@ -198,7 +207,6 @@ const AdminProduct = () => {
                             section: section?.toLowerCase(),
                             category: category?.toLowerCase(),
                             subCategory: subCategory?.toLowerCase(),
-                            // Wrap image in array for new schema
                             images: imageUrl ? imageUrl.split('|').map(url => url.trim()) : [], 
                             description: description || "No description available",
                             sizes: sizesStr ? sizesStr.split('|').map(s => s.trim()) : ["Free Size"],
@@ -215,7 +223,8 @@ const AdminProduct = () => {
             }
         } catch (err) {
             console.error("Upload Error:", err);
-            toast.error(err.response?.data?.message || "Format Error: Check inputs");
+            const errMsg = err.response?.data?.message || "Server Error: Check backend logs";
+            toast.error(errMsg);
         } finally {
             setLoading(false);
         }

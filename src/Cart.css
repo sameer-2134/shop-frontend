@@ -797,4 +797,26 @@
 
 .modern-qty-box button:disabled {
     opacity: 0.2;
+}.cart-item-details-row {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.size-selector-badge, .qty-selector-badge {
+    background: #f5f5f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #282c3f;
+}
+
+.size-selector-badge strong {
+    color: #ff3f6c; /* Myntra style highlight */
+}
+
+.return-policy {
+    font-size: 12px;
+    margin-top: 10px;
+    color: #282c3f;
 }

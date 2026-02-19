@@ -12,20 +12,25 @@ const Wishlist = () => {
 
     const handleMoveToBag = (item) => {
         const itemId = item._id || item.productId?._id;
+        
+        // Check if item has multiple sizes
         const hasSizes = item.sizes && item.sizes.length > 0 && !item.sizes.includes("Free Size");
 
+        // Agar size select nahi ki aur product mein sizes hain, toh shake karo
         if (hasSizes && !selectedSizes[itemId]) {
             setShakeId(itemId);
             setTimeout(() => setShakeId(null), 500);
             return;
         }
 
-        const finalItem = {
+        // ✅ FIXED: Sending data as "size" to match Cart.js expectations
+        const itemToCart = {
             ...item,
-            selectedSize: selectedSizes[itemId] || "Free Size"
+            size: selectedSizes[itemId] || "Free Size", // 'selectedSize' ki jagah 'size' kar diya
+            quantity: 1
         };
         
-        addToCart(finalItem);
+        addToCart(itemToCart);
         removeFromWishlist(itemId);
     };
 
