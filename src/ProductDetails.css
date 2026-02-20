@@ -760,4 +760,8 @@
     border: 1px solid #e1e1e1;
     border-radius: 4px;
     cursor: pointer;
+}@media (max-width: 600px) {
+  .product-card {
+    width: 100%; /* Ya 50% agar ek line mein do dikhane hain */
+  }
 }
