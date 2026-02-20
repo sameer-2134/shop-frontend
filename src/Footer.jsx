@@ -2,19 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Instagram, Linkedin, Facebook, Twitter, 
-  ShieldCheck, RotateCcw, Truck, Apple, Play
+  ShieldCheck, RotateCcw, Truck, Apple, Play, MapPin
 } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
   return (
     <footer className="premium-footer">
-      <div className="neon-line-wrapper">
-    <div className="neon-line"></div>
-  </div>
+      {/* Black Top Border to match "The Archive" header */}
+      <div className="archive-border-top"></div>
+
       <div className="footer-container">
-        <div className="footer-container"></div>
-        
         {/* Section 1: Navigation Grid */}
         <div className="footer-grid">
           <div className="footer-col">
@@ -44,6 +42,15 @@ const Footer = () => {
             <Link to="/sitemap">Site Map</Link>
             <Link to="/corporate">Corporate Governance</Link>
             <Link to="/press">Press Releases</Link>
+            
+            {/* ADDED ADDRESS HERE */}
+            <div className="store-address-section">
+              <h3>STORE LOCATION</h3>
+              <p className="address-text">
+                <MapPin size={14} style={{marginRight: '5px'}} />
+                Palasia, Dream Land Apartment
+              </p>
+            </div>
           </div>
 
           <div className="footer-col newsletter-col">
@@ -52,14 +59,14 @@ const Footer = () => {
             
             <div className="app-btns">
               <a href="#" className="store-btn">
-                <Play size={20} fill="white" />
+                <Play size={20} fill="black" />
                 <div className="btn-text">
                   <small>Get it on</small>
                   <span>Google Play</span>
                 </div>
               </a>
               <a href="#" className="store-btn">
-                <Apple size={20} fill="white" />
+                <Apple size={20} fill="black" />
                 <div className="btn-text">
                   <small>Download on the</small>
                   <span>App Store</span>
@@ -77,7 +84,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Section 2: Trust Badges (3D Cards) */}
+        {/* Section 2: Trust Badges (3D Style kept, but theme matched) */}
         <div className="trust-badges">
           <div className="badge-card">
             <ShieldCheck className="badge-icon" size={36} />
@@ -117,8 +124,8 @@ const Footer = () => {
                 <Twitter size={22} className="s-icon" />
                 <Linkedin size={22} className="s-icon" />
             </div>
-            <p className="copyright">© 2026 Shoplane. Crafted for the Modern Generation.</p>
-            <p className="venture-text">A Premium Fashion Initiative.</p>
+            <p className="copyright">© 2026 SHOPLANE. Crafted for the Modern Generation.</p>
+            <p className="venture-text">THE ARCHIVE | Premium Fashion Initiative.</p>
         </div>
       </div>
     </footer>
