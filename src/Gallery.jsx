@@ -1,40 +1,53 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingBag, Loader2, Plus, ArrowUpRight, Heart, Search, X } from "lucide-react";
 import { useCart } from "./CartContext";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
-import Lenis from "@studio-freight/lenis";
-import { 
-  Loader2, ShoppingBag, Fingerprint, Scan, Plus, 
-  Cpu, Zap, ShieldCheck, Globe 
-} from "lucide-react";
 import "./Gallery.css";
 
+// --- Smooth Image Component for Premium Loading Feel ---
+const SmoothImage = ({ src, alt, className }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  return (
+    <div className={`img-skeleton-container ${isLoaded ? "loaded" : "loading"}`}>
+      <motion.img
+        src={src}
+        alt={alt}
+        className={className}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ duration: 0.6 }}
+        onLoad={() => setIsLoaded(true)}
+      />
+      {!isLoaded && <div className="shimmer-overlay"></div>}
+    </div>
+  );
+};
+
 const Gallery = () => {
-  // ✅ Local Backend Fallback
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-  
+  const ITEMS_PER_PAGE = 8; 
+
   const [products, setProducts] = useState([]);
+  const [displayProducts, setDisplayProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
-  const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
-  const lenisRef = useRef(null);
+  
+  // --- Wishlist and Cart Context ---
+  const { addToCart, addToWishlist, wishlist, removeFromWishlist } = useCart();
 
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const selectedCat = params.get("cat")?.toUpperCase() || "NEW_ARCHIVE";
+  const selectedCat = params.get("cat")?.toUpperCase() || "THE ARCHIVE";
 
-  // Auth Sync
-  useEffect(() => {
-    const checkAuth = () => setIsLoggedIn(!!localStorage.getItem("token"));
-    window.addEventListener("storage", checkAuth);
-    return () => window.removeEventListener("storage", checkAuth);
-  }, []);
+  // Helper check for Wishlist state
+  const isInWishlist = (id) => wishlist?.some(item => (item._id === id || item.productId?._id === id));
 
   const shuffleArray = (array) => {
     let shuffled = [...array];
@@ -45,33 +58,29 @@ const Gallery = () => {
     return shuffled;
   };
 
-  // ✅ Fixed Image Path Logic
   const getImage = (img) => {
-    if (!img) return "https://placehold.co/800x1000?text=No+Image";
-    if (img.startsWith("http")) return img;
-    const cleanPath = img.replace(/\\/g, "/");
-    return `${API_BASE_URL}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+    if (!img) return "https://placehold.co/600x800?text=No+Image";
+    const cleanPath = img.replace(/\\/g, '/');
+    return cleanPath.startsWith('http') ? cleanPath : `${API_BASE_URL}${cleanPath.startsWith("/") ? "" : "/"}${cleanPath}`;
   };
 
-  // ✅ Updated Fetch Logic
   const fetchProducts = useCallback(async (loadMore = false) => {
-    if (loadMore) setLoadingMore(true);
-    else setLoading(true);
-    
+    loadMore ? setLoadingMore(true) : setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/api/products/all`, {
         params: { 
-          limit: 12, 
-          cursor: loadMore ? cursor : "", 
-          category: params.get("cat") || "" 
-        }
+            limit: ITEMS_PER_PAGE, 
+            cursor: loadMore ? cursor : "", 
+            category: params.get("cat") || "" 
+        },
       });
-      
+
       if (res.data.success) {
-        setProducts(prev => {
-          const incoming = shuffleArray(res.data.products);
-          return loadMore ? [...prev, ...incoming] : incoming;
-        });
+        const fetched = res.data.products;
+        const finalProducts = loadMore ? [...products, ...fetched] : shuffleArray(fetched);
+        
+        setProducts(finalProducts);
+        setDisplayProducts(finalProducts);
         setCursor(res.data.nextCursor);
         setHasMore(res.data.hasMore);
       }
@@ -81,128 +90,128 @@ const Gallery = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [cursor, API_BASE_URL, params]);
-
-  useEffect(() => { fetchProducts(false); }, [location.search]);
-
-  // Scroll Management
-  useLayoutEffect(() => {
-    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
-    const savedPos = localStorage.getItem(`scrollPos_${location.search}`);
-    if (savedPos && !loading && products.length > 0) {
-      setTimeout(() => {
-        if (lenisRef.current) lenisRef.current.scrollTo(parseInt(savedPos), { immediate: true });
-      }, 150);
-    }
-  }, [loading, products.length, location.search]);
+  }, [cursor, API_BASE_URL, params, products]);
 
   useEffect(() => {
-    const handleScroll = () => localStorage.setItem(`scrollPos_${location.search}`, window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    fetchProducts(false);
   }, [location.search]);
 
-  // Lenis Smooth Scroll
   useEffect(() => {
-    const lenis = new Lenis({ duration: 1.2, smoothWheel: true, lerp: 0.1 });
-    lenisRef.current = lenis;
-    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-    requestAnimationFrame(raf);
-    return () => lenis.destroy();
-  }, []);
-
-  const { scrollYProgress } = useScroll();
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const rotateXHeader = useTransform(smoothProgress, [0, 0.2], [0, 15]);
+    const filtered = products.filter(p => 
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setDisplayProducts(filtered);
+  }, [searchTerm, products]);
 
   if (loading && products.length === 0) {
     return (
-      <div className="heavy-loader-screen">
-        <Fingerprint size={80} className="loader-icon-anim" />
-        <p className="loader-text">SYNCING_ARCHIVE...</p>
+      <div className="aesthetic-loader">
+        <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }}>
+          <ShoppingBag size={48} strokeWidth={1} />
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="premium-root">
-      <div className="marquee-wrapper top">
-        <div className="marquee-track">
-          {[...Array(10)].map((_, i) => (
-            <span key={i} className="marquee-item">
-              <Zap size={14} fill="currentColor" /> SYSTEM_BOOT_2026 
-              <span className="separator">/</span> 
-              <Cpu size={14} /> ARCHIVE_RESOURCES 
-              <span className="separator">/</span> 
-              <ShieldCheck size={14} /> ENCRYPTED_LINK 
-              <span className="separator">/</span> 
-              <Globe size={14} /> INDORE_CORE —
-            </span>
-          ))}
+    <div className="aesthetic-page">
+      <header className="aesthetic-header">
+        <div className="header-left">
+          <p className="subtitle">EST. 2026 / CURATED PIECES</p>
+          <h1>{selectedCat}</h1>
         </div>
-      </div>
-
-      <header className="premium-header">
-        <motion.div className="header-grid" style={{ rotateX: rotateXHeader }}>
-          <div className="h-left">
-            <span className="system-status">
-              <span className="blink-dot">●</span> 
-              {isLoggedIn ? "AUTH_ACTIVE" : "STATUS_READY"}
-            </span>
-            <h1>{selectedCat}</h1>
+        
+        <div className="header-right">
+          <div className="search-container">
+            <Search size={18} className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="SEARCH ARCHIVE..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && <X size={16} className="clear-search" onClick={() => setSearchTerm("")} />}
           </div>
-          <div className="h-right">
-            <div className="data-row"><span>COUNT:</span><span>{products.length}</span></div>
-            <div className="data-row"><span>BATCH:</span><span>2026_A</span></div>
-          </div>
-        </motion.div>
+          <span className="count-pill">{displayProducts.length} ITEMS</span>
+        </div>
       </header>
 
-      <main className="premium-grid">
+      <main className="aesthetic-grid">
         <AnimatePresence mode="popLayout">
-          {products.map((item, i) => (
-            <motion.div
-              key={item._id}
-              className={`premium-card ${i % 7 === 0 ? 'large' : ''}`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="card-inner">
-                <div className="img-holder" onClick={() => navigate(`/product/${item._id}`)}>
-                  <img 
-                    src={getImage(item.images?.[0])} 
-                    alt={item.name} 
-                    onError={(e) => { e.target.src="https://placehold.co/800x1000?text=IMAGE_ERROR"; }}
-                  />
-                  <div className="scan-line" />
-                  <div className="card-overlay-info">
-                    <Scan size={40} />
-                    <span>VIEW_ASSET</span>
+          {displayProducts.map((item, i) => {
+            const sizeClass = i % 7 === 0 ? "card-tall" : i % 5 === 0 ? "card-wide" : "card-normal";
+            const activeWish = isInWishlist(item._id);
+
+            return (
+              <motion.div
+                layout
+                key={item._id}
+                className={`aesthetic-card ${sizeClass}`}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.5, delay: (i % ITEMS_PER_PAGE) * 0.05 }}
+              >
+                <div className="img-wrapper">
+                  <div className="img-container" onClick={() => navigate(`/product/${item._id}`)}>
+                    <SmoothImage 
+                      src={getImage(item.images?.[0])} 
+                      alt={item.name} 
+                    />
+                    <div className="img-overlay">
+                      <span>EXPLORE PIECE <ArrowUpRight size={14} /></span>
+                    </div>
+                  </div>
+
+                  {/* --- Wishlist Button Logic --- */}
+                  <button 
+                    className={`wish-heart ${activeWish ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        activeWish ? removeFromWishlist(item._id) : addToWishlist(item);
+                    }}
+                  >
+                    <Heart 
+                        size={18} 
+                        fill={activeWish ? "#ff4757" : "none"} 
+                        stroke={activeWish ? "#ff4757" : "currentColor"} 
+                    />
+                  </button>
+
+                  <button className="quick-add-btn" onClick={() => addToCart(item)}>
+                    <Plus size={16} /> ADD TO BAG
+                  </button>
+                </div>
+
+                <div className="info-area">
+                  <div className="brand-line">
+                    <span className="brand-name">{item.brand || "STUDIO"}</span>
+                    {i < 2 && !searchTerm && <span className="new-tag">NEW</span>}
+                  </div>
+                  <h3 className="product-name">{item.name}</h3>
+                  <div className="price-line">
+                    <span className="current-price">₹{item.price?.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="card-info">
-                  <div className="info-top">
-                    <h3>{item.name}</h3>
-                    <span className="price-tag">₹{item.price?.toLocaleString()}</span>
-                  </div>
-                  <div className="info-bottom">
-                    <span className="brand-code">[{item.brand || "ARCHIVE"}]</span>
-                    <button className="add-btn" onClick={(e) => { e.stopPropagation(); addToCart(item); }}>
-                      <ShoppingBag size={20} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </main>
 
-      {hasMore && (
+      {hasMore && !searchTerm && (
         <div className="load-more-section">
-          <button className="load-more-btn" onClick={() => fetchProducts(true)}>
-            {loadingMore ? <Loader2 className="spin" /> : "REQUEST_MORE_DATA"}
+          <button 
+            className="view-more-btn" 
+            onClick={() => fetchProducts(true)}
+            disabled={loadingMore}
+          >
+            {loadingMore ? (
+              <> <Loader2 className="spin" size={18} /> LOADING ARCHIVE... </>
+            ) : (
+              "VIEW MORE PIECES"
+            )}
           </button>
         </div>
       )}

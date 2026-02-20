@@ -6,7 +6,6 @@ import { CartProvider } from './CartContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// --- COMPONENTS ---
 import Navbar from './Navbar';
 import Register from './Register';
 import Login from './Login';
@@ -25,25 +24,19 @@ import Wishlist from './Wishlist';
 import ScrollToTop from "./ScrollToTop";
 import Orders from './Orders';
 
-// --- ADMIN DASHBOARD ---
 import AdminLayout from './AdminLayout'; 
 import AdminCustomers from './AdminCustomers'; 
 import AdminStats from './AdminStats';
 import AdminInventory from './AdminInventory'; 
 import AdminOrders from './pages/Admin/AdminOrders'; 
 
-const Layout = ({ children, token }) => {
+const Layout = ({ children }) => {
   const location = useLocation();
-  
-  // Routes jahan Navbar/Footer nahi dikhana
   const noNavPaths = ['/register', '/login', '/forgot-password', '/atelier', '/admin-dashboard']; 
   
   const shouldShow = useMemo(() => {
-    // Agar path noNavPaths mein hai toh kabhi mat dikhao
-    const isExcludedPath = noNavPaths.some(path => location.pathname.startsWith(path));
-    // Dikhana tabhi hai jab token ho aur path excluded na ho
-    return token && !isExcludedPath;
-  }, [token, location.pathname]);
+    return !noNavPaths.some(path => location.pathname.startsWith(path));
+  }, [location.pathname]);
 
   return (
     <>
@@ -62,7 +55,6 @@ function App() {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')));
   const [token, setToken] = useState(() => localStorage.getItem('token'));
 
-  // ✅ Client ID ab .env se uthayega, fallback ke liye teri purani ID rakhi hai
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "280292727223-rlh3i44omc3hsrp5ib643dul2dulnqj8.apps.googleusercontent.com";
 
   useEffect(() => {
@@ -70,7 +62,6 @@ function App() {
       setUser(JSON.parse(localStorage.getItem('user')));
       setToken(localStorage.getItem('token'));
     };
-    // Sync across tabs and manual dispatch
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
@@ -82,25 +73,23 @@ function App() {
     <GoogleOAuthProvider clientId={googleClientId}>
       <CartProvider> 
         <Router>
-          <Layout token={token}>
+          <Layout>
             <Routes>
-              {/* AUTH ROUTES */}
-              <Route path="/" element={isAuthenticated ? <Navigate to="/gallery" /> : <Register />} />
+              <Route path="/" element={<Navigate to="/gallery" />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+
               <Route path="/register" element={isAuthenticated ? <Navigate to="/gallery" /> : <Register />} />
               <Route path="/login" element={isAuthenticated ? <Navigate to="/gallery" /> : <Login setUser={setUser} setToken={setToken} />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* PROTECTED USER ROUTES */}
-              <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
               <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-              <Route path="/product/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/checkout/address" element={<ProtectedRoute><AddressSection /></ProtectedRoute>} />
               <Route path="/checkout/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
               <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
               <Route path="/my-orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
               
-              {/* ADMIN SPECIAL ROUTES */}
               <Route path="/atelier/*" element={isAdmin ? <ProtectedRoute adminOnly={true}><Atelier /></ProtectedRoute> : <Navigate to="/" />} />
               
               <Route path="/admin-dashboard" element={isAdmin ? <AdminLayout /> : <Navigate to="/" />}>
@@ -112,8 +101,7 @@ function App() {
                 <Route path="users" element={<AdminCustomers />} /> 
               </Route>
 
-              {/* 404 Redirect */}
-              <Route path="*" element={<Navigate to="/" />} />
+              <Route path="*" element={<Navigate to="/gallery" />} />
             </Routes>
           </Layout>
         </Router>

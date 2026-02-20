@@ -21,6 +21,7 @@ const ProductDetails = () => {
     const [selectedSize, setSelectedSize] = useState(null);
     const [selectedColor, setSelectedColor] = useState(null);
     const [pincode, setPincode] = useState('');
+    const [deliveryMsg, setDeliveryMsg] = useState(''); // New State for Pincode
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [isSelectionOpen, setIsSelectionOpen] = useState(false);
     const [showToast, setShowToast] = useState(false);
@@ -28,11 +29,19 @@ const ProductDetails = () => {
 
     const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-    // Helper to get full Image URL (Fixed for Arrays)
     const getFullUrl = (img) => {
         if (!img) return "https://placehold.co/600x800?text=Premium+Piece";
         const cleanPath = img.replace(/\\/g, '/');
         return cleanPath.startsWith('http') ? cleanPath : `${API_BASE_URL}/${cleanPath}`;
+    };
+
+    // Pincode Check Logic
+    const checkPincode = () => {
+        if (pincode.length === 6) {
+            setDeliveryMsg(`🚚 Delivering to ${pincode} by ${new Date(Date.now() + 4 * 86400000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`);
+        } else {
+            setDeliveryMsg("❌ Please enter a valid 6-digit pincode");
+        }
     };
 
     useEffect(() => {
@@ -52,17 +61,12 @@ const ProductDetails = () => {
                 if (res.data.success) {
                     const currentProduct = res.data.product;
                     setProduct(currentProduct);
-                    
-                    // ✅ Fixed: Initialize main image from the images array
                     if (currentProduct.images && currentProduct.images.length > 0) {
                         setMainImage(currentProduct.images[0]);
                     }
-                    
-                    // Fetch Related Products logic
                     const queryParam = currentProduct.subCategory 
                         ? `subCategory=${encodeURIComponent(currentProduct.subCategory)}` 
                         : `category=${encodeURIComponent(currentProduct.category)}`;
-                    
                     const relatedRes = await axios.get(`${API_BASE_URL}/api/products?${queryParam}`);
                     if (relatedRes.data.success) {
                         setRelatedProducts(relatedRes.data.products.filter(p => p._id !== id).slice(0, 10));
@@ -89,7 +93,6 @@ const ProductDetails = () => {
     const handleInitialAdd = () => {
         const hasSizes = product?.sizes?.length > 0;
         const hasColors = product?.colors?.length > 0;
-
         if ((hasSizes && !selectedSize) || (hasColors && !selectedColor)) {
             setIsSelectionOpen(true);
         } else {
@@ -107,7 +110,6 @@ const ProductDetails = () => {
             triggerToast("Please select your size");
             return;
         }
-
         addToCart({ ...product, size: selectedSize, color: selectedColor });
         setIsSelectionOpen(false);
         triggerToast("Added to your bag!");
@@ -118,15 +120,9 @@ const ProductDetails = () => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pd-wrapper">
-            
             <AnimatePresence>
                 {showToast && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 50 }} 
-                        animate={{ opacity: 1, y: 0 }} 
-                        exit={{ opacity: 0, y: 20 }}
-                        className="pd-toast"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="pd-toast">
                         <CheckCircle2 size={18} /> {toastMsg}
                     </motion.div>
                 )}
@@ -135,14 +131,9 @@ const ProductDetails = () => {
             <div className="pd-container">
                 <div className="pd-gallery-section">
                     <div className="pd-thumbnails">
-                        {/* ✅ Fixed: Mapping through images array */}
                         {product.images && product.images.length > 0 ? (
                             product.images.map((img, index) => (
-                                <div 
-                                    key={index} 
-                                    className={`pd-thumb-item ${mainImage === img ? 'active' : ''}`} 
-                                    onMouseEnter={() => setMainImage(img)}
-                                >
+                                <div key={index} className={`pd-thumb-item ${mainImage === img ? 'active' : ''}`} onMouseEnter={() => setMainImage(img)}>
                                     <img src={getFullUrl(img)} alt={`Thumbnail ${index}`} />
                                 </div>
                             ))
@@ -151,7 +142,6 @@ const ProductDetails = () => {
                         )}
                     </div>
                     <div className="pd-main-viewer">
-                        {/* ✅ Main Image Display */}
                         <ProductImageZoom src={getFullUrl(mainImage)} />
                     </div>
                 </div>
@@ -182,11 +172,7 @@ const ProductDetails = () => {
                             </div>
                             <div className="size-grid">
                                 {product.sizes.map(size => (
-                                    <button 
-                                        key={size} 
-                                        onClick={() => setSelectedSize(size)}
-                                        className={`size-btn ${selectedSize === size ? 'active' : ''}`}
-                                    >
+                                    <button key={size} onClick={() => setSelectedSize(size)} className={`size-btn ${selectedSize === size ? 'active' : ''}`}>
                                         {size}
                                     </button>
                                 ))}
@@ -201,21 +187,19 @@ const ProductDetails = () => {
                     </div>
 
                     <div className="pd-pincode-box">
-                        <h3 className="section-label"><MapPin size={16}/> DELIVERY OPTIONS</h3>
+                        <h3 className="section-label"><MapPin size={16}/> CHECK DELIVERY</h3>
                         <div className="pincode-input-wrap">
-                            <input type="text" placeholder="Enter Pincode" value={pincode} onChange={(e) => setPincode(e.target.value)} />
-                            <button>CHECK</button>
+                            <input type="text" maxLength="6" placeholder="Enter Pincode" value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))} />
+                            <button onClick={checkPincode}>CHECK</button>
                         </div>
+                        {deliveryMsg && <motion.p initial={{opacity:0}} animate={{opacity:1}} className="delivery-status-msg">{deliveryMsg}</motion.p>}
                     </div>
 
                     <div className="pd-action-btns">
                         <button className="pd-btn-primary" onClick={handleInitialAdd}>
                             <ShoppingBag size={20} /> ADD TO BAG
                         </button>
-                        <button className="pd-btn-secondary" onClick={() => {
-                            addToWishlist(product);
-                            triggerToast("Saved to wishlist!");
-                        }}>
+                        <button className="pd-btn-secondary" onClick={() => { addToWishlist(product); triggerToast("Saved to wishlist!"); }}>
                             <Heart size={22} />
                         </button>
                     </div>
@@ -241,7 +225,6 @@ const ProductDetails = () => {
                         {relatedProducts.map(p => (
                             <Link to={`/product/${p._id}`} key={p._id} className="related-card">
                                 <div className="related-img-wrapper">
-                                    {/* ✅ Fixed: Show first image from related product array */}
                                     <img src={getFullUrl(p.images ? p.images[0] : '')} alt={p.name} />
                                 </div>
                                 <div className="related-info">
@@ -261,42 +244,23 @@ const ProductDetails = () => {
             <AnimatePresence>
                 {isSelectionOpen && (
                     <div className="drawer-portal-wrapper">
-                        <motion.div 
-                            className="selection-overlay" 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsSelectionOpen(false)}
-                        />
-                        <motion.div 
-                            className="selection-drawer"
-                            initial={{ y: "100%" }}
-                            animate={{ y: 0 }}
-                            exit={{ y: "100%" }}
-                            transition={{ type: "tween", duration: 0.3 }}
-                        >
+                        <motion.div className="selection-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsSelectionOpen(false)} />
+                        <motion.div className="selection-drawer" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "tween", duration: 0.3 }}>
                             <div className="drawer-header">
                                 <h2>Select color and size</h2>
                                 <button onClick={() => setIsSelectionOpen(false)}><X size={24}/></button>
                             </div>
-
                             <div className="drawer-body">
                                 {product.colors?.length > 0 && (
                                     <div className="drawer-section">
                                         <h3>COLOR</h3>
                                         <div className="drawer-color-grid">
                                             {product.colors.map(color => (
-                                                <button 
-                                                    key={color} 
-                                                    className={`drawer-color-btn ${selectedColor === color ? 'active' : ''}`}
-                                                    style={{ backgroundColor: color }}
-                                                    onClick={() => setSelectedColor(color)}
-                                                />
+                                                <button key={color} className={`drawer-color-btn ${selectedColor === color ? 'active' : ''}`} style={{ backgroundColor: color }} onClick={() => setSelectedColor(color)} />
                                             ))}
                                         </div>
                                     </div>
                                 )}
-
                                 {product.sizes?.length > 0 && (
                                     <div className="drawer-section">
                                         <div className="drawer-section-header">
@@ -305,21 +269,14 @@ const ProductDetails = () => {
                                         </div>
                                         <div className="drawer-size-grid">
                                             {product.sizes.map(size => (
-                                                <button 
-                                                    key={size}
-                                                    className={`drawer-size-btn ${selectedSize === size ? 'active' : ''}`}
-                                                    onClick={() => setSelectedSize(size)}
-                                                >
+                                                <button key={size} className={`drawer-size-btn ${selectedSize === size ? 'active' : ''}`} onClick={() => setSelectedSize(size)}>
                                                     <Zap size={12} className="zap-icon"/> {size}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                 )}
-
-                                <button className="drawer-add-btn" onClick={finalAddToCart}>
-                                    Add To Bag
-                                </button>
+                                <button className="drawer-add-btn" onClick={finalAddToCart}>Add To Bag</button>
                             </div>
                         </motion.div>
                     </div>

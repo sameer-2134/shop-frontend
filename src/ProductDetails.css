@@ -671,4 +671,93 @@
     .pd-gallery-section {
         flex-direction: column-reverse; /* Thumbnails niche aa jayenge mobile pe */
     }
+}/* Mobile Fixes */
+@media (max-width: 768px) {
+  .pd-container {
+    flex-direction: column !important; /* Image upar, details niche */
+    padding: 10px;
+  }
+
+  .pd-gallery-section {
+    width: 100% !important;
+    flex-direction: column-reverse !important; /* Thumbnails ko main image ke niche lane ke liye */
+  }
+
+  .pd-thumbnails {
+    width: 100% !important;
+    flex-direction: row !important;
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+
+  .pd-thumb-item {
+    width: 70px !important;
+    height: 90px !important;
+    flex-shrink: 0;
+  }
+
+  .pd-details-section {
+    width: 100% !important;
+    padding: 15px 0 !important;
+  }
+
+  .pd-action-btns {
+    position: fixed; /* Bottom sticky buttons for mobile */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 10px;
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 10px;
+  }
+  
+  .pd-wrapper { padding-bottom: 80px; } /* Space for sticky buttons */
+}
+
+/* Pincode Message Style */
+.delivery-status-msg {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #2e7d32; /* Green color for positive feel */
+  font-weight: 500;
+}.pd-action-btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    width: 100%;
+    position: relative; /* Fixed ya Sticky ki jagah relative rakho taaki flow mein rahe */
+    z-index: 5;
+    background: white; /* Mobile par overlap se bachne ke liye */
+}
+
+.pd-btn-primary {
+    flex: 1; /* Add to Bag ko poori jagah dene ke liye */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 54px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pd-btn-secondary {
+    width: 54px; /* Wishlist icon ko square rakhne ke liye */
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    cursor: pointer;
 }
