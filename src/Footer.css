@@ -150,3 +150,113 @@
 
 .copyright { font-weight: 700; font-size: 13px; margin-bottom: 5px; }
 .venture-text { font-size: 12px; color: #9496a2; }
+/* Container ko screen ke andar rakhne ke liye */
+.premium-footer {
+  background-color: #ffffff;
+  color: #000000;
+  padding: 40px 0 20px 0;
+  border-top: 1px solid #eaeaec;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  overflow-x: hidden; /* Bahar jaane se rokega */
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px; /* Side spacing taaki chipke nahi */
+  box-sizing: border-box;
+}
+
+/* Responsive Grid: Mobile pe 1 ya 2 column, Desktop pe 4 */
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+/* Columns styling */
+.footer-col {
+  min-width: 0; /* Grid item ko overflow se bachata hai */
+}
+
+.footer-col h3 {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 15px;
+  color: #282c3f;
+  text-transform: uppercase;
+}
+
+/* Address and Links */
+.footer-col a, .address-text {
+  display: block;
+  text-decoration: none;
+  color: #696b79;
+  font-size: 14px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* App Buttons ko wrap karne ke liye */
+.app-btns {
+  display: flex;
+  flex-wrap: wrap; /* Mobile pe buttons niche aa jayenge */
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.store-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #000;
+  min-width: 120px;
+}
+
+/* Subscribe Box Fix */
+.premium-subscribe {
+  display: flex;
+  width: 100%;
+  max-width: 300px; /* Zyada bada na ho */
+  border: 1px solid #d4d5d9;
+}
+
+.premium-subscribe input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+  min-width: 0; /* Input width fix */
+}
+
+/* Trust Badges Mobile Fix */
+.trust-badges {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid #eaeaec;
+}
+
+.badge-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 250px; /* Taaki mobile pe stack ho sakein */
+}
+
+/* Brands section width fix */
+.popular-searches {
+  width: 100%;
+  padding: 20px 0;
+  word-wrap: break-word; /* Lambe text ko tod dega */
+}
+
