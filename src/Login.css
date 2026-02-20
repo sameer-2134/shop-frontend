@@ -1,139 +1,220 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
 
 :root {
-    --login-accent: #ff3f6c;
-    --login-glow: rgba(255, 63, 108, 0.4);
-    --login-bg: #030305;
+    --auth-black: #0a0a0a;
+    --auth-white: #ffffff;
+    --auth-gray: #f5f5f7;
+    --auth-border: #e2e2e7;
+    --auth-accent: #000000;
 }
 
-.login-3d-wrapper {
+.shoplane-auth-container {
     min-height: 100vh;
-    background: var(--login-bg);
+    background: var(--auth-white);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.auth-split-layout {
     display: flex;
-    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Visual Side */
+.auth-visual-side {
+    flex: 1.2;
+    background: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070') center/cover;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 60px;
+    color: white;
+}
+
+.visual-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+.visual-text {
+    position: relative;
+    z-index: 2;
+}
+
+.brand-tag {
+    font-weight: 800;
+    letter-spacing: 4px;
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.visual-text h2 {
+    font-size: clamp(32px, 5vw, 48px); /* Responsive Font */
+    font-weight: 300;
+    line-height: 1.1;
+    margin-top: 10px;
+}
+
+/* Form Side */
+.auth-form-side {
+    flex: 1;
+    display: flex;
     align-items: center;
-    padding: 20px;
-    font-family: 'Space Grotesk', sans-serif;
-    overflow: hidden;
-    perspective: 2000px;
+    justify-content: center;
+    padding: 40px;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.form-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--auth-black);
+}
+
+.form-header p {
+    color: #666;
+    margin-top: 8px;
+    font-size: 15px;
+}
+
+/* Tab Switcher */
+.tab-switcher {
+    display: flex;
+    gap: 25px;
+    margin: 40px 0;
+    border-bottom: 1px solid var(--auth-border);
+}
+
+.tab-switcher button {
+    background: none;
+    border: none;
+    padding-bottom: 15px;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #aaa;
+    cursor: pointer;
     position: relative;
 }
 
-/* Background Effects */
-.grid-layer {
+.tab-switcher button.active {
+    color: var(--auth-black);
+}
+
+.tab-switcher button.active::after {
+    content: '';
     position: absolute;
-    inset: 0;
-    background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-    mask-image: radial-gradient(circle at center, black, transparent 80%);
-    z-index: 1;
-}
-
-.login-bg-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(100px);
-    z-index: 0;
-    animation: orbMove 15s infinite alternate ease-in-out;
-}
-.orb-primary { width: 500px; height: 500px; background: rgba(255, 63, 108, 0.15); top: -10%; left: -5%; }
-.orb-secondary { width: 400px; height: 400px; background: rgba(37, 99, 235, 0.15); bottom: -5%; right: -5%; }
-
-@keyframes orbMove {
-    from { transform: translate(0, 0); }
-    to { transform: translate(80px, 40px); }
-}
-
-/* Main Card Logic */
-.login-main-card {
+    bottom: -1px;
+    left: 0;
     width: 100%;
-    max-width: 1000px;
-    height: 650px;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(30px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 40px;
-    display: flex;
-    z-index: 2;
-    box-shadow: 0 50px 100px rgba(0,0,0,0.6);
+    height: 2px;
+    background: var(--auth-black);
 }
 
-/* Visual Panel */
-.login-visual-panel {
-    flex: 1;
-    background: linear-gradient(225deg, rgba(255, 63, 108, 0.1), transparent);
-    padding: 60px;
+/* Form Inputs */
+.auth-form {
     display: flex;
-    align-items: center;
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 40px 0 0 40px;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.brand-badge-3d {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 8px 16px;
-    border-radius: 100px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--login-accent);
-    font-size: 12px;
+.input-group label {
+    display: block;
+    font-size: 11px;
     font-weight: 700;
-    margin-bottom: 25px;
-    border: 1px solid rgba(255, 63, 108, 0.2);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--auth-black);
 }
 
-.visual-content h1 { font-size: 60px; color: white; line-height: 0.9; margin-bottom: 20px; }
-.visual-content h1 span { color: var(--login-accent); text-shadow: 0 0 30px var(--login-glow); }
-.visual-content p { color: #888; font-size: 18px; max-width: 300px; line-height: 1.5; }
-
-.trust-meter { margin-top: 40px; }
-.trust-item { color: #555; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-
-/* Form Panel */
-.login-form-panel { flex: 1.2; padding: 60px; display: flex; align-items: center; justify-content: center; }
-.form-inner-3d { width: 100%; max-width: 360px; }
-
-.login-icon-box {
-    width: 60px; height: 60px; background: rgba(255, 63, 108, 0.1);
-    border-radius: 18px; display: flex; align-items: center; justify-content: center;
-    color: var(--login-accent); margin-bottom: 20px; border: 1px solid rgba(255, 63, 108, 0.2);
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.login-header h2 { font-size: 32px; color: white; margin-bottom: 5px; }
-.login-header p { color: #666; font-size: 14px; margin-bottom: 35px; }
-
-.login-field-wrap { position: relative; margin-bottom: 18px; }
-.login-field-wrap input {
-    width: 100%; height: 55px; background: rgba(255, 255, 255, 0.02);
-    border: 1px solid #222; border-radius: 16px; padding: 0 20px 0 55px;
-    color: white; font-size: 15px; transition: 0.3s;
+.input-wrapper svg {
+    position: absolute;
+    left: 15px;
+    color: #999;
 }
 
-.login-field-wrap input:focus {
-    border-color: var(--login-accent); background: rgba(255, 63, 108, 0.05);
-    box-shadow: 0 0 15px var(--login-glow); outline: none;
+.input-wrapper input {
+    width: 100%;
+    height: 50px;
+    padding: 0 15px 0 45px;
+    border: 1.5px solid var(--auth-border);
+    border-radius: 8px;
+    background: var(--auth-gray);
+    font-size: 15px;
+    transition: 0.3s;
 }
 
-.f-icon { position: absolute; left: 20px; top: 18px; color: var(--login-accent); opacity: 0.7; }
-
-.forgot-box { text-align: right; margin-bottom: 25px; }
-.forgot-box a { color: #555; font-size: 13px; text-decoration: none; transition: 0.3s; }
-.forgot-box a:hover { color: var(--login-accent); }
-
-.login-btn-3d {
-    width: 100%; height: 60px; background: var(--login-accent); color: white;
-    border: none; border-radius: 16px; font-weight: 800; font-size: 15px;
-    display: flex; align-items: center; justify-content: center; gap: 12px;
-    cursor: pointer; box-shadow: 0 20px 40px rgba(255, 63, 108, 0.3);
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--auth-black);
+    background: white;
 }
 
-.login-footer { text-align: center; margin-top: 35px; color: #555; font-size: 14px; }
-.login-footer a { color: white; font-weight: 700; text-decoration: underline; margin-left: 5px; }
+.submit-btn {
+    height: 55px;
+    background: var(--auth-black);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+}
 
-/* Responsive */
-@media (max-width: 1024px) {
-    .login-main-card { max-width: 500px; flex-direction: column; height: auto; padding: 20px 0; }
-    .login-visual-panel { display: none; }
-    .login-form-panel { padding: 40px 20px; }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- RESPONSIVE LOGIC --- */
+
+@media (max-width: 900px) {
+    .auth-split-layout {
+        flex-direction: column; /* Mobile par stack ho jayega */
+    }
+
+    .auth-visual-side {
+        flex: none;
+        height: 35vh; /* Mobile par photo ki height */
+        padding: 30px;
+    }
+
+    .visual-text h2 {
+        font-size: 28px;
+    }
+
+    .auth-form-side {
+        padding: 30px 20px;
+        align-items: flex-start; /* Form thoda upar se start hoga */
+    }
+
+    .form-container {
+        max-width: 100%;
+    }
+
+    .form-header h1 {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-visual-side {
+        height: 25vh; /* Chote phones par photo aur choti */
+    }
+    
+    .tab-switcher {
+        gap: 15px;
+    }
 }

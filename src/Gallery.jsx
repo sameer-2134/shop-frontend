@@ -6,7 +6,6 @@ import { ShoppingBag, Loader2, Plus, ArrowUpRight, Heart, Search, X } from "luci
 import { useCart } from "./CartContext";
 import "./Gallery.css";
 
-// --- Smooth Image Component for Premium Loading Feel ---
 const SmoothImage = ({ src, alt, className }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   return (
@@ -27,7 +26,7 @@ const SmoothImage = ({ src, alt, className }) => {
 
 const Gallery = () => {
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-  const ITEMS_PER_PAGE = 8; 
+  const ITEMS_PER_PAGE = 8;
 
   const [products, setProducts] = useState([]);
   const [displayProducts, setDisplayProducts] = useState([]);
@@ -40,13 +39,11 @@ const Gallery = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // --- Wishlist and Cart Context ---
-  const { addToCart, addToWishlist, wishlist, removeFromWishlist } = useCart();
+  const { addToCart, addToWishlist, wishlist, removeFromWishlist, user } = useCart();
 
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const selectedCat = params.get("cat")?.toUpperCase() || "THE ARCHIVE";
 
-  // Helper check for Wishlist state
   const isInWishlist = (id) => wishlist?.some(item => (item._id === id || item.productId?._id === id));
 
   const shuffleArray = (array) => {
@@ -85,7 +82,7 @@ const Gallery = () => {
         setHasMore(res.data.hasMore);
       }
     } catch (err) {
-      console.error("Fetch Error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -103,6 +100,14 @@ const Gallery = () => {
     );
     setDisplayProducts(filtered);
   }, [searchTerm, products]);
+
+  const handleProtectedAction = (action, item) => {
+    if (!user) {
+      navigate("/login", { state: { from: location.pathname } });
+    } else {
+      action(item);
+    }
+  };
 
   if (loading && products.length === 0) {
     return (
@@ -164,12 +169,13 @@ const Gallery = () => {
                     </div>
                   </div>
 
-                  {/* --- Wishlist Button Logic --- */}
                   <button 
                     className={`wish-heart ${activeWish ? 'active' : ''}`}
                     onClick={(e) => {
                         e.stopPropagation();
-                        activeWish ? removeFromWishlist(item._id) : addToWishlist(item);
+                        handleProtectedAction(() => {
+                            activeWish ? removeFromWishlist(item._id) : addToWishlist(item);
+                        }, item);
                     }}
                   >
                     <Heart 
@@ -179,7 +185,7 @@ const Gallery = () => {
                     />
                   </button>
 
-                  <button className="quick-add-btn" onClick={() => addToCart(item)}>
+                  <button className="quick-add-btn" onClick={() => handleProtectedAction(addToCart, item)}>
                     <Plus size={16} /> ADD TO BAG
                   </button>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { toast } from 'react-toastify'; 
-import { FiPlus, FiTrash2, FiX, FiCheckCircle } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiX, FiCheckCircle, FiHome, FiBriefcase } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import './Address.css';
@@ -62,7 +62,13 @@ const AddressCard = ({ addr, isSelected, onSelect, onDelete }) => {
 
 const AddressSection = () => {
     const navigate = useNavigate();
-    const [addresses, setAddresses] = useState([]);
+    
+    // --- LOCAL STORAGE DATA LOAD ---
+    const [addresses, setAddresses] = useState(() => {
+        const saved = localStorage.getItem('userAddresses');
+        return saved ? JSON.parse(saved) : [];
+    });
+
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedAddress, setSelectedAddress] = useState(null); 
     const [formData, setFormData] = useState({ 
@@ -86,20 +92,22 @@ const AddressSection = () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/api/customers/addresses`, getAuthConfig());
             if (res.data.success) {
-                setAddresses(res.data.addresses);
-                if (res.data.addresses.length > 0) setSelectedAddress(res.data.addresses[0]._id);
+                const freshData = res.data.addresses;
+                setAddresses(freshData);
+                localStorage.setItem('userAddresses', JSON.stringify(freshData));
+                if (freshData.length > 0 && !selectedAddress) setSelectedAddress(freshData[0]._id);
             }
         } catch (err) {
-            if (err.response?.status === 401) {
-                toast.error("Session expired, please login again.");
-            }
+            if (err.response?.status === 401) toast.error("Session expired!");
         }
     };
 
     useEffect(() => { fetchAddresses(); }, []);
 
+    // --- PINCODE & AUTO-FILL ---
     const handlePincodeChange = async (e) => {
         const pin = e.target.value;
+        if (!/^\d*$/.test(pin)) return; // Only numbers
         setFormData(prev => ({ ...prev, pincode: pin }));
 
         if (pin.length === 6) {
@@ -112,6 +120,7 @@ const AddressSection = () => {
                         city: postOffice.District, 
                         state: postOffice.State 
                     }));
+                    toast.success("Location auto-filled! ✨");
                 }
             } catch (err) { 
                 toast.error("Invalid Pincode"); 
@@ -124,7 +133,9 @@ const AddressSection = () => {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/customers/address`, formData, getAuthConfig());
             if (res.data.success) {
-                setAddresses(res.data.addresses);
+                const updatedList = res.data.addresses;
+                setAddresses(updatedList);
+                localStorage.setItem('userAddresses', JSON.stringify(updatedList));
                 setIsFormOpen(false);
                 toast.success("Address added! 🏠");
                 setFormData({ name: '', phone: '', pincode: '', locality: '', address: '', city: '', state: '', landmark: '', type: 'Home' });
@@ -139,7 +150,9 @@ const AddressSection = () => {
         try {
             const res = await axios.delete(`${API_BASE_URL}/api/customers/address/${id}`, getAuthConfig());
             if (res.data.success) {
-                setAddresses(res.data.addresses);
+                const updatedList = res.data.addresses;
+                setAddresses(updatedList);
+                localStorage.setItem('userAddresses', JSON.stringify(updatedList));
                 toast.info("Address deleted 🗑️");
             }
         } catch (err) { toast.error("Delete failed"); }
@@ -190,21 +203,34 @@ const AddressSection = () => {
             <AnimatePresence>
                 {isFormOpen && (
                     <div className="modal-overlay">
-                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="address-modal-3d">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="address-modal-3d">
                             <div className="modal-header">
                                 <h4>NEW ADDRESS</h4>
                                 <FiX className="close-icon" onClick={() => setIsFormOpen(false)} />
                             </div>
                             <form onSubmit={saveAddress}>
                                 <div className="form-grid-premium">
-                                    <input type="text" name="name" placeholder="Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-                                    <input type="text" name="phone" placeholder="Mobile" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
-                                    <input type="text" name="pincode" value={formData.pincode} placeholder="Pincode" onChange={handlePincodeChange} required />
-                                    <input type="text" name="locality" placeholder="Locality" value={formData.locality} onChange={(e) => setFormData({...formData, locality: e.target.value})} required />
-                                    <textarea className="full-width" name="address" placeholder="Address" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
-                                    <input type="text" name="city" value={formData.city} placeholder="City" readOnly />
-                                    <input type="text" name="state" value={formData.state} placeholder="State" readOnly />
+                                    <input type="text" placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                                    <input type="text" placeholder="10-digit Mobile Number" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
+                                    <input type="text" placeholder="Pincode (Auto-fills City/State)" value={formData.pincode} maxLength="6" onChange={handlePincodeChange} required />
+                                    <input type="text" placeholder="Locality / Area" value={formData.locality} onChange={(e) => setFormData({...formData, locality: e.target.value})} required />
+                                    <textarea className="full-width" placeholder="Flat, House no., Building, Company, Apartment" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
+                                    <input type="text" placeholder="City" value={formData.city} readOnly className="read-only-input" />
+                                    <input type="text" placeholder="State" value={formData.state} readOnly className="read-only-input" />
                                 </div>
+
+                                <div className="address-type-selector">
+                                    <p>Address Type:</p>
+                                    <div className="type-btns">
+                                        <button type="button" className={formData.type === 'Home' ? 'active' : ''} onClick={() => setFormData({...formData, type: 'Home'})}>
+                                            <FiHome /> Home
+                                        </button>
+                                        <button type="button" className={formData.type === 'Work' ? 'active' : ''} onClick={() => setFormData({...formData, type: 'Work'})}>
+                                            <FiBriefcase /> Work
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div className="modal-footer-btns">
                                     <button type="submit" className="save-btn-final">SAVE ADDRESS</button>
                                 </div>

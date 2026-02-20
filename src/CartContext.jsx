@@ -18,10 +18,10 @@ export const CartProvider = ({ children }) => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
 
     const getActiveToken = () => localStorage.getItem('token');
 
-    // Reusable Toast function with dismiss to prevent stacking
     const showToast = (message, type = 'success') => {
         toast.dismiss(); 
         if (type === 'success') toast.success(message);
@@ -33,6 +33,7 @@ export const CartProvider = ({ children }) => {
     const clearCart = useCallback(() => {
         setCart([]);
         setWishlist([]);
+        setUser(null);
         localStorage.removeItem('cart');
         localStorage.removeItem('wishlist');
         localStorage.removeItem('token');
@@ -49,7 +50,7 @@ export const CartProvider = ({ children }) => {
             setCart([]);
             localStorage.removeItem('cart');
         } catch (error) {
-            console.error("Error clearing cart after order:", error);
+            console.error(error);
             setCart([]);
             localStorage.removeItem('cart');
         }
@@ -58,6 +59,7 @@ export const CartProvider = ({ children }) => {
     const fetchUserData = useCallback(async () => {
         const activeToken = getActiveToken(); 
         if (!activeToken) {
+            setUser(null);
             setLoading(false);
             return;
         }
@@ -89,6 +91,7 @@ export const CartProvider = ({ children }) => {
 
             setWishlist(serverWish);
             setCart(serverCart);
+            setUser(true);
 
         } catch (err) {
             if (err.response?.status === 401) {
@@ -108,17 +111,14 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
     }, [cart, wishlist]);
 
-    // ✅ FIXED: Add to Cart (Double Toast Fix using current state check)
     const addToCart = async (product) => {
-        // Check current state immediately
         const isExist = cart.find(item => item._id === product._id && item.size === product.size);
 
         if (isExist) {
             showToast("Item with this size already in bag!", "info");
-            return; // Yahin se stop, no further execution
+            return;
         }
 
-        // If not exist, update state and show toast once
         setCart(prev => [...prev, { ...product, quantity: 1 }]);
         showToast("Added to bag! 🔥", "success");
         
@@ -129,11 +129,10 @@ export const CartProvider = ({ children }) => {
                 size: product.size 
             }, {
                 headers: { Authorization: `Bearer ${token}` }
-            }).catch(e => console.log("Backend error:", e));
+            }).catch(e => console.log(e));
         }
     };
 
-    // ✅ FIXED: Wishlist Notification (Double Toast Fix)
     const addToWishlist = async (product) => {
         const isExist = wishlist.find(item => item._id === product._id);
 
@@ -192,14 +191,14 @@ export const CartProvider = ({ children }) => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } catch (e) {
-                console.error("Backend update error:", e);
+                console.error(e);
             }
         }
     };
 
     return (
         <CartContext.Provider value={{ 
-            cart, wishlist, loading, addToCart, removeFromCart, 
+            cart, wishlist, loading, user, addToCart, removeFromCart, 
             updateQuantity, addToWishlist, removeFromWishlist, fetchUserData, 
             clearCart, orderSuccessClear 
         }}>

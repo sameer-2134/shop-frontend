@@ -1,158 +1,121 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-hot-toast'; 
-import { Mail, Lock, LogIn, ArrowRight, ShieldCheck, Fingerprint } from 'lucide-react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import './Login.css';
 
-// --- CONFIGURATION ---
-// Development mein localhost aur Production (Live) mein Render ki URL automatically uthayega
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 const Login = ({ setUser, setToken }) => {
-    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+    
     const navigate = useNavigate();
-
-    // 3D Tilt Effect Logic
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const mouseXSpring = useSpring(x, { stiffness: 120, damping: 20 });
-    const mouseYSpring = useSpring(y, { stiffness: 120, damping: 20 });
-
-    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["15deg", "-15deg"]);
-    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
-
-    const handleMouseMove = (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        x.set((e.clientX - rect.left) / rect.width - 0.5);
-        y.set((e.clientY - rect.top) / rect.height - 0.5);
-    };
+    const location = useLocation();
+    const from = location.state?.from || "/gallery";
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleLogin = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/auth/login`, formData, { 
-                withCredentials: true 
-            });
+            const res = await axios.post(`${API_BASE_URL}${endpoint}`, formData);
 
             if (res.data.success) {
-                // local storage update
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
                 
-                // State Sync (App.js ke liye)
                 if (setUser) setUser(res.data.user);
                 if (setToken) setToken(res.data.token);
                 
-                // Custom Event for cross-component sync
                 window.dispatchEvent(new Event("storage"));
-
-                toast.success(`Welcome Back, ${res.data.user.name}! 🚀`);
-                navigate('/gallery'); 
+                toast.success(isLogin ? `Welcome back, ${res.data.user.name}` : "Account created successfully!");
+                navigate(from, { replace: true });
             }
         } catch (error) {
-            const errorMessage = error.response?.data?.message || "Login failed. Check server connection.";
-            toast.error(errorMessage);
-        } finally { 
-            setLoading(false); 
+            toast.error(error.response?.data?.message || "Authentication failed");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="login-3d-wrapper">
-            {/* Ambient Background Elements */}
-            <div className="login-bg-orb orb-primary"></div>
-            <div className="login-bg-orb orb-secondary"></div>
-            <div className="grid-layer"></div>
-
-            <motion.div 
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => { x.set(0); y.set(0); }}
-                style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-                className="login-main-card"
-            >
-                {/* Left Panel: Visuals */}
-                <div className="login-visual-panel">
-                    <motion.div style={{ translateZ: 100 }} className="visual-content">
-                        <div className="brand-badge-3d">
-                            <Fingerprint size={16} />
-                            <span>Biometric Secure</span>
-                        </div>
-                        <h1>Welcome <br/><span>Back.</span></h1>
-                        <p>Access your curated universe of premium products.</p>
-                        
-                        <div className="trust-meter">
-                            <div className="trust-item"><ShieldCheck size={14}/> 128-bit Encrypted</div>
-                        </div>
+        <div className="shoplane-auth-container">
+            <div className="auth-split-layout">
+                <div className="auth-visual-side">
+                    <div className="visual-overlay"></div>
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="visual-text"
+                    >
+                        <span className="brand-tag">SHOPLANE / ARCHIVE</span>
+                        <h2>CURATING THE <br/> FUTURE OF STYLE</h2>
                     </motion.div>
                 </div>
 
-                {/* Right Panel: Form */}
-                <div className="login-form-panel">
-                    <motion.div style={{ translateZ: 80 }} className="form-inner-3d">
-                        <div className="login-header">
-                            <div className="login-icon-box">
-                                <LogIn size={32} />
-                            </div>
-                            <h2>Sign In</h2>
-                            <p>Enter your credentials to continue</p>
+                <div className="auth-form-side">
+                    <div className="form-container">
+                        <header className="form-header">
+                            <h1>{isLogin ? "Welcome Back" : "Join Shoplane"}</h1>
+                            <p>{isLogin ? "Enter your details to access the archive" : "Create an account for a curated experience"}</p>
+                        </header>
+
+                        <div className="tab-switcher">
+                            <button className={isLogin ? "active" : ""} onClick={() => setIsLogin(true)}>LOGIN</button>
+                            <button className={!isLogin ? "active" : ""} onClick={() => setIsLogin(false)}>REGISTER</button>
                         </div>
 
-                        <form onSubmit={handleLogin} className="login-form-actual">
-                            <div className="login-field-wrap">
-                                <Mail className="f-icon" size={18} />
-                                <input 
-                                    type="email" 
-                                    name="email" 
-                                    placeholder="Email Address" 
-                                    value={formData.email}
-                                    onChange={handleChange} 
-                                    required 
-                                />
+                        <form onSubmit={handleSubmit} className="auth-form">
+                            <AnimatePresence mode="wait">
+                                {!isLogin && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="input-group"
+                                    >
+                                        <label>Full Name</label>
+                                        <div className="input-wrapper">
+                                            <User size={18} />
+                                            <input type="text" name="name" placeholder="John Doe" onChange={handleChange} required={!isLogin} />
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <div className="input-group">
+                                <label>Email Address</label>
+                                <div className="input-wrapper">
+                                    <Mail size={18} />
+                                    <input type="email" name="email" placeholder="email@example.com" onChange={handleChange} required />
+                                </div>
                             </div>
 
-                            <div className="login-field-wrap">
-                                <Lock className="f-icon" size={18} />
-                                <input 
-                                    type="password" 
-                                    name="password" 
-                                    placeholder="Password" 
-                                    value={formData.password}
-                                    onChange={handleChange} 
-                                    required 
-                                />
+                            <div className="input-group">
+                                <label>Password</label>
+                                <div className="input-wrapper">
+                                    <Lock size={18} />
+                                    <input type="password" name="password" placeholder="••••••••" onChange={handleChange} required />
+                                </div>
                             </div>
 
-                            <div className="forgot-box">
-                                <Link to="/forgot-password">Forgot Identity?</Link>
-                            </div>
-
-                            <motion.button 
-                                whileHover={{ scale: 1.05, translateZ: 40 }}
-                                whileTap={{ scale: 0.95 }}
-                                type="submit" 
-                                disabled={loading} 
-                                className="login-btn-3d"
-                            >
-                                {loading ? "Verifying..." : "LAUNCH DASHBOARD"}
-                                <ArrowRight size={20} />
-                            </motion.button>
+                            <button type="submit" className="submit-btn" disabled={loading}>
+                                {loading ? <Loader2 className="spinner" /> : (isLogin ? "SIGN IN" : "CREATE ACCOUNT")}
+                                {!loading && <ArrowRight size={18} />}
+                            </button>
                         </form>
-
-                        <p className="login-footer">
-                            New Explorer? <Link to="/register">Create Account</Link>
-                        </p>
-                    </motion.div>
+                    </div>
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 };
