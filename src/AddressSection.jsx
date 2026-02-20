@@ -1,60 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { toast } from 'react-toastify'; 
-import { FiPlus, FiTrash2, FiX, FiCheckCircle, FiHome, FiBriefcase } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiX, FiCheck } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import './Address.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-
 const AddressCard = ({ addr, isSelected, onSelect, onDelete }) => {
-    const [rotate, setRotate] = useState({ x: 0, y: 0 });
-
-    const handleMouseMove = (e) => {
-        const card = e.currentTarget.getBoundingClientRect();
-        const x = (e.clientY - card.top - card.height / 2) / 15;
-        const y = (e.clientX - card.left - card.width / 2) / 15;
-        setRotate({ x, y });
-    };
-
     return (
         <motion.div 
             layout
             initial={{ opacity: 0, y: 20 }}
-            animate={{ 
-                opacity: 1, y: 0,
-                rotateX: rotate.x, 
-                rotateY: -rotate.y,
-                scale: isSelected ? 1.02 : 1
-            }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => setRotate({ x: 0, y: 0 })}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            whileHover={{ y: -5 }}
             onClick={() => onSelect(addr._id)}
-            className={`address-card-3d ${isSelected ? 'selected' : ''}`}
+            className={`shoplane-card ${isSelected ? 'selected' : ''}`}
         >
-            <div className="card-glass-shine"></div>
-            <div className="card-top">
-                <span className="address-type-tag">{addr.type}</span>
-                {isSelected && <FiCheckCircle className="tick-icon" />}
+            <div className="card-header-minimal">
+                <span className="type-label">{addr.type || 'Home'}</span>
+                {isSelected && <motion.div initial={{scale:0}} animate={{scale:1}} className="selected-dot" />}
             </div>
 
-            <div className="address-details">
-                <p className="user-name">{addr.name} <span>{addr.phone}</span></p>
-                <p className="user-full-address">
-                    {addr.address}, {addr.locality}, {addr.city}, {addr.state} - <strong>{addr.pincode}</strong>
+            <div className="address-body-minimal">
+                <h4 className="client-name">{addr.name}</h4>
+                <p className="client-phone">{addr.phone}</p>
+                <p className="client-address">
+                    {addr.address}, {addr.locality},<br />
+                    {addr.city}, {addr.state} — <strong>{addr.pincode}</strong>
                 </p>
             </div>
 
-            <div className="card-actions">
-                <motion.button 
-                    whileHover={{ scale: 1.1 }}
-                    className="del-btn" 
-                    onClick={(e) => onDelete(e, addr._id)}
+            <div className="card-footer-minimal">
+                <button 
+                    className="minimal-del-btn" 
+                    onClick={(e) => {
+                        e.stopPropagation(); 
+                        onDelete(addr._id);
+                    }}
                 >
-                    <FiTrash2 /> Remove
-                </motion.button>
+                    <FiTrash2 /> REMOVE
+                </button>
+                {isSelected && <span className="deliver-tag">SELECTED FOR DELIVERY</span>}
             </div>
         </motion.div>
     );
@@ -62,10 +48,37 @@ const AddressCard = ({ addr, isSelected, onSelect, onDelete }) => {
 
 const AddressSection = () => {
     const navigate = useNavigate();
-    
-    // --- LOCAL STORAGE DATA LOAD ---
+
+    // Custom Toast function for that "Archive" premium feel
+    const showToast = (message, type = "success") => {
+        const toastConfig = {
+            position: "bottom-right",
+            autoClose: 2000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            theme: "dark",
+            style: {
+                borderRadius: '0px',
+                background: '#000',
+                color: '#fff',
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '1.5px',
+                border: '1px solid #333',
+                textTransform: 'uppercase'
+            }
+        };
+
+        if (type === "success") toast.success(message, toastConfig);
+        else if (type === "error") toast.error(message, toastConfig);
+        else toast.info(message, toastConfig);
+    };
+
+    // 1. Browser se data load karna (Initial State)
     const [addresses, setAddresses] = useState(() => {
-        const saved = localStorage.getItem('userAddresses');
+        const saved = localStorage.getItem('shoplane_user_addresses');
         return saved ? JSON.parse(saved) : [];
     });
 
@@ -73,113 +86,88 @@ const AddressSection = () => {
     const [selectedAddress, setSelectedAddress] = useState(null); 
     const [formData, setFormData] = useState({ 
         name: '', phone: '', pincode: '', locality: '', 
-        address: '', city: '', state: '', landmark: '', 
-        type: 'Home' 
+        address: '', city: '', state: '', type: 'Home' 
     });
 
-    const getAuthConfig = () => {
-        const token = localStorage.getItem('token');
-        return {
-            headers: { 
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            withCredentials: true
-        };
-    };
-
-    const fetchAddresses = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/api/customers/addresses`, getAuthConfig());
-            if (res.data.success) {
-                const freshData = res.data.addresses;
-                setAddresses(freshData);
-                localStorage.setItem('userAddresses', JSON.stringify(freshData));
-                if (freshData.length > 0 && !selectedAddress) setSelectedAddress(freshData[0]._id);
-            }
-        } catch (err) {
-            if (err.response?.status === 401) toast.error("Session expired!");
+    // 2. LocalStorage Sync
+    useEffect(() => {
+        localStorage.setItem('shoplane_user_addresses', JSON.stringify(addresses));
+        if (addresses.length > 0 && !selectedAddress) {
+            setSelectedAddress(addresses[0]._id);
         }
-    };
+    }, [addresses]);
 
-    useEffect(() => { fetchAddresses(); }, []);
-
-    // --- PINCODE & AUTO-FILL ---
+    // Pincode API Logic
     const handlePincodeChange = async (e) => {
         const pin = e.target.value;
-        if (!/^\d*$/.test(pin)) return; // Only numbers
+        if (!/^\d*$/.test(pin)) return;
         setFormData(prev => ({ ...prev, pincode: pin }));
-
+        
         if (pin.length === 6) {
             try {
-                const res = await axios.get(`https://api.postalpincode.in/pincode/${pin}`);
-                if (res.data[0].Status === "Success") {
-                    const postOffice = res.data[0].PostOffice[0];
+                const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                const data = await res.json();
+                if (data[0].Status === "Success") {
+                    const po = data[0].PostOffice[0];
                     setFormData(prev => ({ 
                         ...prev, 
-                        city: postOffice.District, 
-                        state: postOffice.State 
+                        city: po.District, 
+                        state: po.State 
                     }));
-                    toast.success("Location auto-filled! ✨");
+                    showToast("LOCATION DATA SYNCED ✨");
                 }
             } catch (err) { 
-                toast.error("Invalid Pincode"); 
+                showToast("INVALID PINCODE", "error"); 
             }
         }
     };
 
-    const saveAddress = async (e) => {
+    // 3. Save Address (No Backend)
+    const saveAddress = (e) => {
         e.preventDefault();
-        try {
-            const res = await axios.post(`${API_BASE_URL}/api/customers/address`, formData, getAuthConfig());
-            if (res.data.success) {
-                const updatedList = res.data.addresses;
-                setAddresses(updatedList);
-                localStorage.setItem('userAddresses', JSON.stringify(updatedList));
-                setIsFormOpen(false);
-                toast.success("Address added! 🏠");
-                setFormData({ name: '', phone: '', pincode: '', locality: '', address: '', city: '', state: '', landmark: '', type: 'Home' });
-            }
-        } catch (err) { 
-            toast.error(err.response?.data?.message || "Error saving address"); 
-        }
+        const newAddress = {
+            ...formData,
+            _id: `addr_${Date.now()}` 
+        };
+
+        setAddresses([newAddress, ...addresses]);
+        setIsFormOpen(false);
+        showToast("ADDRESS ARCHIVED SUCCESSFULLY 🏠");
+        
+        // Form Reset
+        setFormData({ name: '', phone: '', pincode: '', locality: '', address: '', city: '', state: '', type: 'Home' });
     };
 
-    const deleteAddress = async (e, id) => {
-        e.stopPropagation();
-        try {
-            const res = await axios.delete(`${API_BASE_URL}/api/customers/address/${id}`, getAuthConfig());
-            if (res.data.success) {
-                const updatedList = res.data.addresses;
-                setAddresses(updatedList);
-                localStorage.setItem('userAddresses', JSON.stringify(updatedList));
-                toast.info("Address deleted 🗑️");
-            }
-        } catch (err) { toast.error("Delete failed"); }
+    // 4. Delete Address (No Backend)
+    const deleteAddress = (id) => {
+        const filtered = addresses.filter(addr => addr._id !== id);
+        setAddresses(filtered);
+        showToast("ENTRY REMOVED FROM ARCHIVE 🗑️", "info");
+        if (selectedAddress === id) setSelectedAddress(null);
     };
 
     const handleDeliverClick = () => {
         const data = addresses.find(addr => addr._id === selectedAddress);
-        if (!data) return toast.warn("Please select an address!");
+        if (!data) return showToast("SELECT AN ADDRESS FIRST", "error");
+        
         localStorage.setItem('shippingAddress', JSON.stringify(data));
         navigate('/checkout/payment');
     };
 
     return (
-        <div className="address-page">
-            <div className="dynamic-bg-glow"></div>
-            <div className="address-container">
-                <div className="address-header">
-                    <div className="header-text">
-                        <h3>Manage Addresses</h3>
-                        <p>Where should we ship your style?</p>
+        <div className="sl-address-page">
+            <div className="sl-container">
+                <header className="sl-page-header">
+                    <div className="sl-title-group">
+                        <span className="sl-subtitle">EST. 2026 / LOCAL STORAGE</span>
+                        <h1 className="sl-main-title">SHIPPING INFO</h1>
                     </div>
-                    <button className="add-new-btn-premium" onClick={() => setIsFormOpen(true)}>
-                        <FiPlus /> ADD NEW
+                    <button className="sl-add-btn" onClick={() => setIsFormOpen(true)}>
+                        <FiPlus /> ADD NEW ADDRESS
                     </button>
-                </div>
+                </header>
 
-                <div className="address-list">
+                <div className="sl-address-grid">
                     <AnimatePresence mode="popLayout">
                         {addresses.map((addr) => (
                             <AddressCard 
@@ -191,52 +179,52 @@ const AddressSection = () => {
                             />
                         ))}
                     </AnimatePresence>
+                    {addresses.length === 0 && (
+                        <p className="no-address">No addresses found in your browser archive.</p>
+                    )}
                 </div>
                 
                 {addresses.length > 0 && (
-                    <button className="confirm-btn-premium" onClick={handleDeliverClick}>
-                        DELIVER TO THIS ADDRESS
-                    </button>
+                    <div className="sl-sticky-footer">
+                        <motion.button 
+                            whileTap={{ scale: 0.98 }}
+                            className="sl-confirm-btn" 
+                            onClick={handleDeliverClick}
+                        >
+                            PROCEED TO PAYMENT — <FiCheck />
+                        </motion.button>
+                    </div>
                 )}
             </div>
 
             <AnimatePresence>
                 {isFormOpen && (
-                    <div className="modal-overlay">
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="address-modal-3d">
-                            <div className="modal-header">
-                                <h4>NEW ADDRESS</h4>
-                                <FiX className="close-icon" onClick={() => setIsFormOpen(false)} />
+                    <motion.div className="sl-modal-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+                        <motion.div className="sl-modal" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}>
+                            <div className="sl-modal-header">
+                                <h3>NEW ARCHIVE LOCATION</h3>
+                                <FiX className="sl-close" onClick={() => setIsFormOpen(false)} />
                             </div>
-                            <form onSubmit={saveAddress}>
-                                <div className="form-grid-premium">
-                                    <input type="text" placeholder="Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
-                                    <input type="text" placeholder="10-digit Mobile Number" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
-                                    <input type="text" placeholder="Pincode (Auto-fills City/State)" value={formData.pincode} maxLength="6" onChange={handlePincodeChange} required />
-                                    <input type="text" placeholder="Locality / Area" value={formData.locality} onChange={(e) => setFormData({...formData, locality: e.target.value})} required />
-                                    <textarea className="full-width" placeholder="Flat, House no., Building, Company, Apartment" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
-                                    <input type="text" placeholder="City" value={formData.city} readOnly className="read-only-input" />
-                                    <input type="text" placeholder="State" value={formData.state} readOnly className="read-only-input" />
+                            <form onSubmit={saveAddress} className="sl-form">
+                                <div className="sl-form-row">
+                                    <input type="text" placeholder="FULL NAME" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+                                    <input type="text" placeholder="MOBILE NO." value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required />
                                 </div>
-
-                                <div className="address-type-selector">
-                                    <p>Address Type:</p>
-                                    <div className="type-btns">
-                                        <button type="button" className={formData.type === 'Home' ? 'active' : ''} onClick={() => setFormData({...formData, type: 'Home'})}>
-                                            <FiHome /> Home
-                                        </button>
-                                        <button type="button" className={formData.type === 'Work' ? 'active' : ''} onClick={() => setFormData({...formData, type: 'Work'})}>
-                                            <FiBriefcase /> Work
-                                        </button>
-                                    </div>
+                                <input type="text" placeholder="PINCODE" value={formData.pincode} maxLength="6" onChange={handlePincodeChange} required />
+                                <input type="text" placeholder="LOCALITY / AREA" value={formData.locality} onChange={(e) => setFormData({...formData, locality: e.target.value})} required />
+                                <textarea placeholder="COMPLETE ADDRESS DETAILS" value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} required />
+                                <div className="sl-form-row">
+                                    <input type="text" placeholder="CITY" value={formData.city} readOnly className="sl-read" />
+                                    <input type="text" placeholder="STATE" value={formData.state} readOnly className="sl-read" />
                                 </div>
-
-                                <div className="modal-footer-btns">
-                                    <button type="submit" className="save-btn-final">SAVE ADDRESS</button>
+                                <div className="sl-type-select">
+                                    <button type="button" className={formData.type === 'Home' ? 'active' : ''} onClick={() => setFormData({...formData, type: 'Home'})}>HOME</button>
+                                    <button type="button" className={formData.type === 'Work' ? 'active' : ''} onClick={() => setFormData({...formData, type: 'Work'})}>WORK</button>
                                 </div>
+                                <button type="submit" className="sl-save-btn">SAVE TO BROWSER ARCHIVE</button>
                             </form>
                         </motion.div>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
