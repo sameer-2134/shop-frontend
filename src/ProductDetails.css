@@ -765,3 +765,42 @@
     width: 100%; /* Ya 50% agar ek line mein do dikhane hain */
   }
 }
+@media (max-width: 768px) {
+    .related-grid {
+        /* Isse ensure hoga ki cards screen ke bahar na nikle */
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important; 
+        gap: 15px !important;
+        padding: 0 10px !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .related-card {
+        width: 100%;
+        overflow: hidden; /* Extra content bahar na jaye */
+    }
+
+    .related-img-wrapper {
+        height: 220px; /* Mobile par image height kam karein */
+    }
+}
+.related-name {
+    font-size: 14px;
+    color: #333;
+    margin: 5px 0;
+    /* In lines ko change karle */
+    white-space: normal; /* nowrap hata kar normal kar de */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 2 line ke baad dots (...) dikhayega */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+    height: 2.4em; /* Text box ki height fix rakhega taaki cards upar niche na ho */
+}
+.related-section {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden; /* Side scroll rokne ke liye */
+    padding: 0 15px;
+    box-sizing: border-box;
+}
